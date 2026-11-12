@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+jspm_packages/
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+!backend/.env.example
+!frontend/.env.example
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+.vite/
+coverage/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.local
+
+# Runtime / temporary uploads & personal assets
+uploads/
+tmp/
+temp/
+Agnik_Mondal_LinkedIn_Banner_1584x396.png
