@@ -1,0 +1,68 @@
+/* Klubnika Bytes Brand Design Tokens */
+:root {
+  --kb-espresso:         #32201B; /* darkest: sidebar, login panel, footer */
+  --kb-cocoa:            #3D2B24; /* dark surfaces, table headers, headings on light */
+  --kb-strawberry:       #E23A48; /* PRIMARY accent: primary buttons, active states, key numerals */
+  --kb-coral:            #FF7B88; /* accent on dark backgrounds only */
+  --kb-cream:            #F8F1E9; /* app background, panels */
+  --kb-cream-deep:       #F3E9DF; /* hover rows, chips, input fill */
+  --kb-white:            #FFFFFF; /* cards, modals, inputs */
+  --kb-text:             #3D2B24; /* main text on light */
+  --kb-text-muted:       #6B5750; /* secondary text */
+  --kb-sand:             #D9C9BC; /* borders, dividers */
+  --kb-taupe:            #B9A79B; /* placeholders, disabled, icons on dark */
+  --kb-umber:            #8C6F63; /* tertiary text, icons */
+
+  /* Derived tokens */
+  --kb-ink:              #1A110E; /* deepest background */
+  --kb-cocoa-hover:      #4E372F; /* subtle hover on espresso/cocoa */
+  --kb-strawberry-hover: #C92F3D;
+  --kb-strawberry-tint:  #FBE4E6; /* selected row, soft badge fill */
+  --kb-crimson:          #9B1F2E; /* destructive actions & negative state */
+  --kb-crimson-hover:    #7D1724;
+  --kb-focus:            rgba(226, 58, 72, 0.35);
+  --kb-overlay:          rgba(26, 17, 14, 0.65);
+  --kb-strawberry-glow:  rgba(226, 58, 72, 0.22);
+  --kb-sand-grid:        rgba(217, 201, 188, 0.5);
+  --kb-on-dark-surface:  rgba(255, 255, 255, 0.08);
+  --kb-on-dark-border:   rgba(255, 255, 255, 0.16);
+  --kb-on-dark-muted:    rgba(248, 241, 233, 0.78);
+  --kb-white-soft:       rgba(255, 255, 255, 0.22);
+
+  /* Semantic lead status tokens (4.5:1+ contrast) */
+  --kb-status-new-bg:        #F3E9DF;
+  --kb-status-new-fg:        #3D2B24;
+  --kb-status-new-border:    #D9C9BC;
+
+  --kb-status-amber-bg:      #FBEFD5;
+  --kb-status-amber-fg:      #8A5A00;
+  --kb-status-amber-border:  #E6C991;
+
+  --kb-status-teal-bg:       #DDF0E8;
+  --kb-status-teal-fg:       #1F6B54;
+  --kb-status-teal-border:   #B2D9C7;
+
+  --kb-status-umber-bg:      #EADBD0;
+  --kb-status-umber-fg:      #6B4A3F;
+  --kb-status-umber-border:  #D3BCAC;
+
+  --kb-status-won-bg:        #D9F0E0;
+  --kb-status-won-fg:        #1B6B3A;
+  --kb-status-won-border:    #AEDBBF;
+
+  --kb-status-lost-bg:       #FBE4E6;
+  --kb-status-lost-fg:       #9B1F2E;
+  --kb-status-lost-border:   #F0BCC2;
+
+  --kb-status-cold-bg:       #ECE4DC;
+  --kb-status-cold-fg:       #6B5750;
+  --kb-status-cold-border:   #D9C9BC;
+
+  /* Charts & pipeline categorical order (max 6) */
+  --kb-chart-1: #E23A48;
+  --kb-chart-2: #3D2B24;
+  --kb-chart-3: #8C6F63;
+  --kb-chart-4: #FF7B88;
+  --kb-chart-5: #B9A79B;
+  --kb-chart-6: #D9C9BC;
+}

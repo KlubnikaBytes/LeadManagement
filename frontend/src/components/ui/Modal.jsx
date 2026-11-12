@@ -28,14 +28,14 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md', footer })
   return (
     <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className={`modal-content ${sizes[size]} w-full`}>
-        <div className="flex items-center justify-between p-5 border-b border-slate-800">
-          <h2 className="text-lg font-semibold text-slate-100">{title}</h2>
+        <div className="flex items-center justify-between p-5 border-b border-kb-sand">
+          <h2 className="text-lg font-semibold text-kb-cocoa">{title}</h2>
           <button onClick={onClose} className="btn-icon">
             <X className="w-4 h-4" />
           </button>
         </div>
         <div className="p-5">{children}</div>
-        {footer && <div className="p-5 border-t border-slate-800 bg-slate-900/50">{footer}</div>}
+        {footer && <div className="p-5 border-t border-kb-sand bg-kb-cream-deep">{footer}</div>}
       </div>
     </div>
   )

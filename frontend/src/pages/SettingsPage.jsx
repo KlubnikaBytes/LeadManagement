@@ -12,13 +12,13 @@ export const SettingsPage = () => {
       </div>
 
       <div className="card p-5">
-        <h3 className="font-semibold text-slate-300 mb-4">Profile</h3>
+        <h3 className="section-header mb-4">Profile</h3>
         <div className="flex items-center gap-4">
           <Avatar name={user?.name} size="xl" />
           <div>
-            <p className="text-xl font-bold text-slate-100">{user?.name}</p>
-            <p className="text-slate-500">{user?.email}</p>
-            <p className="text-xs text-slate-600 mt-1">{user?.role?.replace('_', ' ')}</p>
+            <p className="text-xl font-bold text-kb-cocoa">{user?.name}</p>
+            <p className="text-kb-muted">{user?.email}</p>
+            <p className="text-xs text-kb-umber mt-1">{user?.role?.replace('_', ' ')}</p>
           </div>
         </div>
       </div>

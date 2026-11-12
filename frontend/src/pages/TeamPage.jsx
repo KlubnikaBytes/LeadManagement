@@ -14,11 +14,15 @@ import toast from 'react-hot-toast'
 
 const RoleTag = ({ role }) => {
   const colors = {
-    ADMIN: 'bg-red-500/20 text-red-400',
-    TEAM_LEADER: 'bg-amber-500/20 text-amber-400',
-    SALES_EXECUTIVE: 'bg-blue-500/20 text-blue-400',
+    ADMIN: 'bg-kb-lost-bg text-kb-lost-fg border border-kb-lost-border',
+    TEAM_LEADER: 'bg-kb-amber-bg text-kb-amber-fg border border-kb-amber-border',
+    SALES_EXECUTIVE: 'bg-kb-new-bg text-kb-new-fg border border-kb-new-border',
   }
-  return <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${colors[role] || 'bg-slate-700 text-slate-400'}`}>{role?.replace('_', ' ')}</span>
+  return (
+    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${colors[role] || 'bg-kb-cold-bg text-kb-cold-fg border border-kb-cold-border'}`}>
+      {role?.replace('_', ' ')}
+    </span>
+  )
 }
 
 export const TeamPage = () => {
@@ -105,30 +109,35 @@ export const TeamPage = () => {
           {/* Summary Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             {[
-              { label: 'Team Members', value: performance.length },
-              { label: 'Total Leads', value: performance.reduce((s, p) => s + p.totalLeads, 0) },
-              { label: 'Total Calls', value: performance.reduce((s, p) => s + p.totalCalls, 0) },
-              { label: 'Total Converted', value: performance.reduce((s, p) => s + p.convertedLeads, 0) },
+              { label: 'Team Members', value: performance.length, accent: false },
+              { label: 'Total Leads', value: performance.reduce((s, p) => s + p.totalLeads, 0), accent: true },
+              { label: 'Total Calls', value: performance.reduce((s, p) => s + p.totalCalls, 0), accent: false },
+              { label: 'Total Converted', value: performance.reduce((s, p) => s + p.convertedLeads, 0), accent: true },
             ].map(s => (
-              <div key={s.label} className="card p-4 text-center">
-                <p className="text-2xl font-bold text-slate-100">{s.value.toLocaleString()}</p>
-                <p className="text-xs text-slate-500 mt-1">{s.label}</p>
+              <div
+                key={s.label}
+                className={`rounded-xl p-4 text-center border ${
+                  s.accent ? 'bg-kb-cocoa border-kb-espresso text-kb-white' : 'card'
+                }`}
+              >
+                <p className={`text-2xl font-bold ${s.accent ? 'text-kb-coral' : 'text-kb-cocoa'}`}>{s.value.toLocaleString()}</p>
+                <p className={`text-xs mt-1 ${s.accent ? 'text-kb-white' : 'text-kb-muted'}`}>{s.label}</p>
               </div>
             ))}
           </div>
 
           {/* Performance Table */}
           <div className="card overflow-hidden">
-            <div className="p-4 border-b border-slate-800 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+            <div className="p-4 border-b border-kb-sand flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
               <div>
                 <h2 className="section-header">Team Members & Performance</h2>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-kb-muted mt-0.5">
                   Click any count or View Leads to filter that member&apos;s leads
                 </p>
               </div>
               <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2">
                 <div className="relative w-full sm:w-44">
-                  <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Search className="w-3.5 h-3.5 text-kb-umber absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={memberQuery}
@@ -162,40 +171,40 @@ export const TeamPage = () => {
             {/* Mobile & Tablet Card Grid */}
             <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-3 p-3 sm:p-4">
               {filteredPerformance.length === 0 ? (
-                <div className="text-center py-8 text-slate-500 text-sm">
+                <div className="text-center py-8 text-kb-muted text-sm">
                   No team members match the current filters.
                 </div>
               ) : filteredPerformance.map((p) => (
-                <div key={p.user._id} className="p-4 space-y-3">
+                <div key={p.user._id} className="p-4 rounded-xl bg-kb-cream-deep border border-kb-sand space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3 min-w-0">
                       <Avatar name={p.user.name} size="sm" />
                       <div className="min-w-0">
-                        <p className="font-semibold text-slate-200 truncate">{p.user.name}</p>
-                        <p className="text-xs text-slate-500 truncate">{p.user.email}</p>
+                        <p className="font-semibold text-kb-cocoa truncate">{p.user.name}</p>
+                        <p className="text-xs text-kb-muted truncate">{p.user.email}</p>
                       </div>
                     </div>
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${p.user.isActive !== false ? 'bg-emerald-500/15 text-emerald-400' : 'bg-slate-700 text-slate-400'}`}>
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0 border ${p.user.isActive !== false ? 'bg-kb-won-bg text-kb-won-fg border-kb-won-border' : 'bg-kb-cold-bg text-kb-cold-fg border-kb-cold-border'}`}>
                       {p.user.isActive !== false ? 'Active' : 'Inactive'}
                     </span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <RoleTag role={p.user.role} />
-                    <span className="text-xs text-slate-400">Calls: <strong className="text-slate-200">{p.totalCalls}</strong></span>
-                    <span className="text-xs text-slate-400">Conv: <strong className="text-green-400">{p.convertedLeads}</strong> ({p.conversionRate}%)</span>
+                    <span className="text-xs text-kb-muted">Calls: <strong className="text-kb-cocoa">{p.totalCalls}</strong></span>
+                    <span className="text-xs text-kb-muted">Conv: <strong className="text-kb-won-fg">{p.convertedLeads}</strong> ({p.conversionRate}%)</span>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 text-center bg-slate-950/60 border border-slate-800 rounded-lg p-2">
-                    <Link to={`/leads?createdBy=${p.user._id}`} className="hover:bg-slate-800/50 rounded p-1">
-                      <p className="text-sm font-bold text-primary-400">{p.addedLeads ?? 0}</p>
-                      <p className="text-[11px] text-slate-500">Added</p>
+                  <div className="grid grid-cols-3 gap-2 text-center bg-kb-white border border-kb-sand rounded-lg p-2">
+                    <Link to={`/leads?createdBy=${p.user._id}`} className="hover:bg-kb-cream-deep rounded p-1">
+                      <p className="text-sm font-bold text-kb-strawberry">{p.addedLeads ?? 0}</p>
+                      <p className="text-[11px] text-kb-muted">Added</p>
                     </Link>
-                    <Link to={`/leads?assignedTo=${p.user._id}`} className="hover:bg-slate-800/50 rounded p-1">
-                      <p className="text-sm font-bold text-sky-400">{p.assignedLeads ?? 0}</p>
-                      <p className="text-[11px] text-slate-500">Assigned</p>
+                    <Link to={`/leads?assignedTo=${p.user._id}`} className="hover:bg-kb-cream-deep rounded p-1">
+                      <p className="text-sm font-bold text-kb-cocoa">{p.assignedLeads ?? 0}</p>
+                      <p className="text-[11px] text-kb-muted">Assigned</p>
                     </Link>
-                    <Link to={`/leads?member=${p.user._id}`} className="hover:bg-slate-800/50 rounded p-1">
-                      <p className="text-sm font-bold text-slate-200">{p.totalLeads}</p>
-                      <p className="text-[11px] text-slate-500">Total</p>
+                    <Link to={`/leads?member=${p.user._id}`} className="hover:bg-kb-cream-deep rounded p-1">
+                      <p className="text-sm font-bold text-kb-cocoa">{p.totalLeads}</p>
+                      <p className="text-[11px] text-kb-muted">Total</p>
                     </Link>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -206,7 +215,7 @@ export const TeamPage = () => {
                       <Download className="w-3.5 h-3.5" /> Excel
                     </button>
                     {isAdmin && (
-                      <button onClick={() => setToggleConfirm(p.user)} className="btn-ghost text-xs py-1.5 px-2.5 text-amber-400 hover:text-amber-300">
+                      <button onClick={() => setToggleConfirm(p.user)} className="btn-ghost text-xs py-1.5 px-2.5 text-kb-amber-fg hover:bg-kb-amber-bg">
                         {p.user.isActive !== false ? 'Deactivate' : 'Activate'}
                       </button>
                     )}
@@ -215,7 +224,7 @@ export const TeamPage = () => {
               ))}
             </div>
 
-            <div className="hidden lg:block table-container">
+            <div className="hidden lg:block table-container border-0 rounded-none">
               <table className="table">
                 <thead>
                   <tr>
@@ -231,7 +240,7 @@ export const TeamPage = () => {
                 <tbody>
                   {filteredPerformance.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="text-center py-8 text-slate-500 text-sm">
+                      <td colSpan={7} className="text-center py-8 text-kb-muted text-sm">
                         No team members match the current filters.
                       </td>
                     </tr>
@@ -239,20 +248,28 @@ export const TeamPage = () => {
                     <tr key={p.user._id}>
                       <td>
                         <div className="flex items-center gap-2.5">
-                          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${idx === 0 ? 'bg-amber-500 text-white' : idx === 1 ? 'bg-slate-400 text-white' : idx === 2 ? 'bg-amber-700 text-white' : 'bg-slate-800 text-slate-400'}`}>
+                          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                            idx === 0
+                              ? 'bg-kb-strawberry text-kb-white'
+                              : idx === 1
+                              ? 'bg-kb-cocoa text-kb-white'
+                              : idx === 2
+                              ? 'bg-kb-umber text-kb-white'
+                              : 'bg-kb-cream-deep text-kb-muted'
+                          }`}>
                             {idx + 1}
                           </span>
                           <Avatar name={p.user.name} size="sm" />
                           <div className="min-w-0">
-                            <p className="font-semibold text-slate-200 truncate">{p.user.name}</p>
-                            <p className="text-xs text-slate-500 truncate">{p.user.email}</p>
+                            <p className="font-semibold text-kb-cocoa truncate">{p.user.name}</p>
+                            <p className="text-xs text-kb-muted truncate">{p.user.email}</p>
                           </div>
                         </div>
                       </td>
                       <td>
                         <div className="flex flex-wrap items-center gap-1.5">
                           <RoleTag role={p.user.role} />
-                          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${p.user.isActive !== false ? 'bg-emerald-500/15 text-emerald-400' : 'bg-slate-700 text-slate-400'}`}>
+                          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap border ${p.user.isActive !== false ? 'bg-kb-won-bg text-kb-won-fg border-kb-won-border' : 'bg-kb-cold-bg text-kb-cold-fg border-kb-cold-border'}`}>
                             {p.user.isActive !== false ? 'Active' : 'Inactive'}
                           </span>
                         </div>
@@ -260,7 +277,7 @@ export const TeamPage = () => {
                       <td>
                         <Link
                           to={`/leads?createdBy=${p.user._id}`}
-                          className="font-semibold text-primary-400 hover:text-primary-300 hover:underline"
+                          className="font-semibold text-kb-strawberry hover:text-kb-strawberry-hover hover:underline"
                           title={`View leads added by ${p.user.name}`}
                         >
                           {p.addedLeads ?? 0}
@@ -269,7 +286,7 @@ export const TeamPage = () => {
                       <td>
                         <Link
                           to={`/leads?assignedTo=${p.user._id}`}
-                          className="font-semibold text-sky-400 hover:text-sky-300 hover:underline"
+                          className="font-semibold text-kb-cocoa hover:text-kb-strawberry hover:underline"
                           title={`View leads assigned to ${p.user.name}`}
                         >
                           {p.assignedLeads ?? 0}
@@ -278,7 +295,7 @@ export const TeamPage = () => {
                       <td>
                         <Link
                           to={`/leads?member=${p.user._id}`}
-                          className="font-semibold text-slate-200 hover:text-primary-300 hover:underline"
+                          className="font-semibold text-kb-cocoa hover:text-kb-strawberry hover:underline"
                           title={`View all leads for ${p.user.name}`}
                         >
                           {p.totalLeads}
@@ -286,12 +303,12 @@ export const TeamPage = () => {
                       </td>
                       <td>
                         <div className="text-xs space-y-0.5 whitespace-nowrap">
-                          <p className="text-slate-300">
-                            Calls: <strong className="text-slate-100">{p.totalCalls}</strong> · Int: <strong className="text-emerald-400">{p.interestedLeads}</strong>
+                          <p className="text-kb-text">
+                            Calls: <strong className="text-kb-cocoa">{p.totalCalls}</strong> · Int: <strong className="text-kb-teal-fg">{p.interestedLeads}</strong>
                           </p>
                           <p>
-                            Conv: <strong className="text-green-400">{p.convertedLeads}</strong>{' '}
-                            <span className={`font-semibold ${p.conversionRate >= 10 ? 'text-green-400' : p.conversionRate >= 5 ? 'text-amber-400' : 'text-slate-400'}`}>
+                            Conv: <strong className="text-kb-won-fg">{p.convertedLeads}</strong>{' '}
+                            <span className={`font-semibold ${p.conversionRate >= 10 ? 'text-kb-won-fg' : p.conversionRate >= 5 ? 'text-kb-amber-fg' : 'text-kb-muted'}`}>
                               ({p.conversionRate}%)
                             </span>
                           </p>
@@ -301,21 +318,21 @@ export const TeamPage = () => {
                         <div className="flex items-center gap-1">
                           <Link
                             to={`/leads?member=${p.user._id}`}
-                            className="btn-ghost text-xs px-2 py-1.5 text-primary-400 hover:text-primary-300 inline-flex items-center gap-1"
+                            className="btn-ghost text-xs px-2 py-1.5 text-kb-strawberry hover:text-kb-strawberry-hover inline-flex items-center gap-1"
                           >
                             <Eye className="w-3.5 h-3.5" />
                             Leads
                           </Link>
                           <button
                             onClick={() => handleExportMember(p.user)}
-                            className="btn-ghost text-xs px-2 py-1.5 text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1"
+                            className="btn-ghost text-xs px-2 py-1.5 text-kb-teal-fg hover:bg-kb-teal-bg inline-flex items-center gap-1"
                             title={`Export ${p.user.name}'s leads to Excel`}
                           >
                             <Download className="w-3.5 h-3.5" />
                             Excel
                           </button>
                           {isAdmin && (
-                            <button onClick={() => setToggleConfirm(p.user)} className="btn-ghost text-xs px-2 py-1.5 text-amber-400 hover:text-amber-300">
+                            <button onClick={() => setToggleConfirm(p.user)} className="btn-ghost text-xs px-2 py-1.5 text-kb-amber-fg hover:bg-kb-amber-bg">
                               {p.user.isActive !== false ? 'Deactivate' : 'Activate'}
                             </button>
                           )}
@@ -358,7 +375,16 @@ export const TeamPage = () => {
                   { value: 'TEAM_LEADER', label: 'Team Leader' },
                   { value: 'ADMIN', label: 'Admin' },
                 ].map(r => (
-                  <button key={r.value} type="button" onClick={() => setForm(p => ({ ...p, role: r.value }))} className={`p-2.5 rounded-xl border text-sm font-medium transition-all ${form.role === r.value ? 'border-primary-500 bg-primary-500/10 text-primary-400' : 'border-slate-700 text-slate-400 hover:border-slate-600'}`}>
+                  <button
+                    key={r.value}
+                    type="button"
+                    onClick={() => setForm(p => ({ ...p, role: r.value }))}
+                    className={`p-2.5 rounded-xl border text-sm font-medium transition-all ${
+                      form.role === r.value
+                        ? 'border-kb-strawberry bg-kb-strawberry-tint text-kb-strawberry font-semibold'
+                        : 'border-kb-sand bg-kb-white text-kb-muted hover:border-kb-umber hover:text-kb-cocoa'
+                    }`}
+                  >
                     {r.label}
                   </button>
                 ))}

@@ -6,17 +6,17 @@ export const ToastProvider = () => (
     toastOptions={{
       duration: 4000,
       style: {
-        background: '#1e293b',
-        color: '#f1f5f9',
-        border: '1px solid #334155',
+        background: 'var(--kb-espresso)',
+        color: 'var(--kb-cream)',
+        border: '1px solid var(--kb-cocoa)',
         borderRadius: '12px',
         fontSize: '14px',
       },
       success: {
-        iconTheme: { primary: '#10b981', secondary: '#f1f5f9' },
+        iconTheme: { primary: 'var(--kb-coral)', secondary: 'var(--kb-espresso)' },
       },
       error: {
-        iconTheme: { primary: '#ef4444', secondary: '#f1f5f9' },
+        iconTheme: { primary: 'var(--kb-strawberry)', secondary: 'var(--kb-white)' },
       },
     }}
   />

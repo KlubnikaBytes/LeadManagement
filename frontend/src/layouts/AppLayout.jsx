@@ -7,7 +7,7 @@ export const AppLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="flex h-screen bg-slate-950 overflow-hidden">
+    <div className="flex h-screen bg-kb-cream overflow-hidden">
       {/* Desktop Sidebar */}
       <div className="hidden lg:flex w-64 flex-shrink-0">
         <Sidebar />
@@ -16,8 +16,12 @@ export const AppLayout = () => {
       {/* Mobile Sidebar */}
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setSidebarOpen(false)} />
-          <div className="relative z-10 w-72 max-w-[85vw] flex flex-col bg-slate-950 shadow-2xl">
+          <div
+            className="fixed inset-0 backdrop-blur-xs"
+            style={{ backgroundColor: 'var(--kb-overlay)' }}
+            onClick={() => setSidebarOpen(false)}
+          />
+          <div className="relative z-10 w-72 max-w-[85vw] flex flex-col bg-kb-espresso shadow-2xl">
             <Sidebar onClose={() => setSidebarOpen(false)} />
           </div>
         </div>

@@ -47,9 +47,13 @@ export const Header = ({ onMenuClick }) => {
   }
 
   return (
-    <header className="bg-slate-950 border-b border-slate-800 px-3 sm:px-4 lg:px-6 py-3 flex items-center justify-between gap-2 sm:gap-4 flex-shrink-0">
+    <header className="bg-kb-espresso border-b border-kb-cocoa px-3 sm:px-4 lg:px-6 py-3 flex items-center justify-between gap-2 sm:gap-4 flex-shrink-0 text-kb-white">
       <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-        <button onClick={onMenuClick} className="lg:hidden btn-icon flex-shrink-0" aria-label="Open menu">
+        <button
+          onClick={onMenuClick}
+          className="lg:hidden p-2 rounded-lg text-kb-taupe hover:text-kb-white hover:bg-kb-cocoa transition-colors flex-shrink-0"
+          aria-label="Open menu"
+        >
           <Menu className="w-5 h-5" />
         </button>
         {searchOpen ? (
@@ -63,15 +67,23 @@ export const Header = ({ onMenuClick }) => {
               className="input flex-1 min-w-0 py-1.5 sm:py-2 text-sm"
             />
             <button type="submit" className="btn-primary text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 sm:py-2 flex-shrink-0">Go</button>
-            <button type="button" onClick={() => setSearchOpen(false)} className="btn-icon flex-shrink-0" aria-label="Close search">
+            <button
+              type="button"
+              onClick={() => setSearchOpen(false)}
+              className="p-2 rounded-lg text-kb-taupe hover:text-kb-white hover:bg-kb-cocoa transition-colors flex-shrink-0"
+              aria-label="Close search"
+            >
               <X className="w-4 h-4" />
             </button>
           </form>
         ) : (
-          <button onClick={() => setSearchOpen(true)} className="flex items-center gap-2 text-slate-500 hover:text-slate-300 transition-colors text-sm">
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="flex items-center gap-2 text-kb-taupe hover:text-kb-white transition-colors text-sm"
+          >
             <Search className="w-4 h-4" />
             <span className="hidden sm:inline">Search leads...</span>
-            <kbd className="hidden sm:inline text-xs bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded text-slate-600">/</kbd>
+            <kbd className="hidden sm:inline text-xs bg-kb-cocoa border border-kb-cocoa-hover px-1.5 py-0.5 rounded text-kb-taupe">/</kbd>
           </button>
         )}
       </div>
@@ -84,34 +96,41 @@ export const Header = ({ onMenuClick }) => {
 
         {/* Notifications */}
         <div className="relative">
-          <button onClick={() => setShowNotifications(!showNotifications)} className="btn-icon relative" aria-label="Notifications">
+          <button
+            onClick={() => setShowNotifications(!showNotifications)}
+            className="p-2 rounded-lg text-kb-taupe hover:text-kb-white hover:bg-kb-cocoa transition-colors relative"
+            aria-label="Notifications"
+          >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-white text-xs flex items-center justify-center font-bold">
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-kb-strawberry rounded-full text-kb-white text-xs flex items-center justify-center font-bold">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 top-12 w-[calc(100vw-1.5rem)] max-w-sm sm:w-80 card shadow-2xl z-50 animate-slide-up">
-              <div className="flex items-center justify-between p-4 border-b border-slate-800">
-                <h3 className="font-semibold text-slate-200">Notifications</h3>
+            <div className="absolute right-0 top-12 w-[calc(100vw-1.5rem)] max-w-sm sm:w-80 card shadow-2xl z-50 animate-slide-up text-kb-text">
+              <div className="flex items-center justify-between p-4 border-b border-kb-sand">
+                <h3 className="font-semibold text-kb-cocoa">Notifications</h3>
                 {unreadCount > 0 && (
-                  <button onClick={handleMarkRead} className="text-xs text-primary-400 hover:text-primary-300">
+                  <button onClick={handleMarkRead} className="text-xs text-kb-strawberry hover:text-kb-strawberry-hover font-medium">
                     Mark all read
                   </button>
                 )}
               </div>
               <div className="max-h-80 overflow-y-auto">
                 {notifications.length === 0 ? (
-                  <div className="p-6 text-center text-slate-500 text-sm">No notifications</div>
+                  <div className="p-6 text-center text-kb-muted text-sm">No notifications</div>
                 ) : (
                   notifications.map(n => (
-                    <div key={n._id} className={`p-3 border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors ${!n.isRead ? 'bg-primary-500/5' : ''}`}>
-                      <p className="text-sm font-medium text-slate-200">{n.title}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">{n.message}</p>
-                      <p className="text-xs text-slate-600 mt-1">{formatRelative(n.createdAt)}</p>
+                    <div
+                      key={n._id}
+                      className={`p-3 border-b border-kb-sand hover:bg-kb-cream-deep transition-colors ${!n.isRead ? 'bg-kb-strawberry-tint' : ''}`}
+                    >
+                      <p className="text-sm font-medium text-kb-cocoa">{n.title}</p>
+                      <p className="text-xs text-kb-muted mt-0.5">{n.message}</p>
+                      <p className="text-xs text-kb-umber mt-1">{formatRelative(n.createdAt)}</p>
                     </div>
                   ))
                 )}

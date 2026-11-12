@@ -14,10 +14,10 @@ export const Pagination = ({ pagination, onPageChange }) => {
   }
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-slate-800">
-      <p className="text-xs sm:text-sm text-slate-500 text-center sm:text-left">
-        Showing <span className="font-medium text-slate-300">{start}–{end}</span> of{' '}
-        <span className="font-medium text-slate-300">{total}</span> results
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-kb-sand bg-kb-white">
+      <p className="text-xs sm:text-sm text-kb-muted text-center sm:text-left">
+        Showing <span className="font-medium text-kb-text">{start}–{end}</span> of{' '}
+        <span className="font-medium text-kb-text">{total}</span> results
       </p>
       <div className="flex flex-wrap items-center justify-center gap-1">
         <button
@@ -29,23 +29,23 @@ export const Pagination = ({ pagination, onPageChange }) => {
         </button>
         {pages[0] > 1 && (
           <>
-            <button onClick={() => onPageChange(1)} className="w-8 h-8 rounded-lg text-sm text-slate-400 hover:bg-slate-800">1</button>
-            {pages[0] > 2 && <span className="text-slate-600 px-1">…</span>}
+            <button onClick={() => onPageChange(1)} className="w-8 h-8 rounded-lg text-sm text-kb-muted hover:bg-kb-cream-deep">1</button>
+            {pages[0] > 2 && <span className="text-kb-taupe px-1">…</span>}
           </>
         )}
         {pages.map(p => (
           <button
             key={p}
             onClick={() => onPageChange(p)}
-            className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${p === page ? 'bg-primary-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`}
+            className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${p === page ? 'bg-kb-strawberry text-kb-white' : 'text-kb-muted hover:bg-kb-cream-deep'}`}
           >
             {p}
           </button>
         ))}
         {pages[pages.length - 1] < totalPages && (
           <>
-            {pages[pages.length - 1] < totalPages - 1 && <span className="text-slate-600 px-1">…</span>}
-            <button onClick={() => onPageChange(totalPages)} className="w-8 h-8 rounded-lg text-sm text-slate-400 hover:bg-slate-800">{totalPages}</button>
+            {pages[pages.length - 1] < totalPages - 1 && <span className="text-kb-taupe px-1">…</span>}
+            <button onClick={() => onPageChange(totalPages)} className="w-8 h-8 rounded-lg text-sm text-kb-muted hover:bg-kb-cream-deep">{totalPages}</button>
           </>
         )}
         <button

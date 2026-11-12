@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { Eye, EyeOff, Zap, LogIn } from 'lucide-react'
+import { Eye, EyeOff, LogIn } from 'lucide-react'
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('')
@@ -23,24 +23,24 @@ export const LoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex">
+    <div className="min-h-screen bg-kb-cream flex">
       {/* Left - Branding */}
-      <div className="hidden lg:flex flex-col justify-center px-16 w-1/2 bg-gradient-to-br from-slate-950 via-primary-950/30 to-purple-950/20 border-r border-slate-800">
+      <div className="hidden lg:flex flex-col justify-center px-16 w-1/2 kb-brand-panel border-r border-kb-cocoa">
         <div className="max-w-md">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/20">
-              <Zap className="w-7 h-7 text-white" />
+          <div className="flex items-center gap-4 mb-8">
+            <div className="w-16 h-16 rounded-full bg-kb-cream p-1.5 ring-2 ring-kb-strawberry flex items-center justify-center shadow-lg overflow-hidden">
+              <img src="/klubnika-logo.png" alt="Klubnika Bytes" className="w-full h-full object-contain" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">KlubCRM</h1>
-              <p className="text-slate-500 text-sm">Sales Management System</p>
+              <h1 className="text-2xl font-bold text-kb-white">KlubCRM</h1>
+              <p className="text-kb-taupe text-sm">Sales Management System</p>
             </div>
           </div>
 
-          <h2 className="text-4xl font-bold text-white mb-4 leading-tight">
-            Turn leads into <span className="text-primary-400">clients</span>, effortlessly.
+          <h2 className="text-4xl font-bold text-kb-white mb-4 leading-tight">
+            Turn leads into <span className="text-kb-coral">clients</span>, effortlessly.
           </h2>
-          <p className="text-slate-400 text-lg mb-10">
+          <p className="text-kb-dark-muted text-lg mb-10">
             A professional CRM built for software development sales teams. Manage leads, track calls, schedule follow-ups, and convert prospects.
           </p>
 
@@ -50,9 +50,9 @@ export const LoginPage = () => {
               { value: '3x', label: 'Conversion Rate' },
               { value: '100%', label: 'Team Visibility' },
             ].map(stat => (
-              <div key={stat.label} className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-center">
-                <p className="text-2xl font-bold text-primary-400">{stat.value}</p>
-                <p className="text-xs text-slate-500 mt-1">{stat.label}</p>
+              <div key={stat.label} className="bg-kb-dark-surface border border-kb-dark-border rounded-xl p-4 text-center">
+                <p className="text-2xl font-bold text-kb-coral">{stat.value}</p>
+                <p className="text-xs text-kb-cream mt-1">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -60,23 +60,26 @@ export const LoginPage = () => {
       </div>
 
       {/* Right - Login Form */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8">
+      <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-8 bg-kb-cream">
         <div className="w-full max-w-md">
           <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <Zap className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 rounded-full bg-kb-white p-1 ring-2 ring-kb-strawberry flex items-center justify-center shadow-sm overflow-hidden">
+              <img src="/klubnika-logo.png" alt="Klubnika Bytes" className="w-full h-full object-contain" />
             </div>
-            <h1 className="text-xl font-bold text-white">KlubCRM</h1>
+            <div>
+              <h1 className="text-xl font-bold text-kb-cocoa">KlubCRM</h1>
+              <p className="text-xs text-kb-muted">Klubnika Bytes</p>
+            </div>
           </div>
 
           <div className="card p-8">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-slate-100">Welcome back</h2>
-              <p className="text-slate-500 mt-1">Sign in to your account to continue</p>
+              <h2 className="text-2xl font-bold text-kb-cocoa">Welcome back</h2>
+              <p className="text-kb-muted mt-1">Sign in to your account to continue</p>
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+              <div className="mb-4 p-3 bg-kb-lost-bg border border-kb-lost-border rounded-xl text-kb-crimson text-sm font-medium">
                 {error}
               </div>
             )}
@@ -109,7 +112,7 @@ export const LoginPage = () => {
                     required
                     autoComplete="current-password"
                   />
-                  <button type="button" onClick={() => setShowPwd(!showPwd)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                  <button type="button" onClick={() => setShowPwd(!showPwd)} className="absolute right-3 top-1/2 -translate-y-1/2 text-kb-umber hover:text-kb-cocoa">
                     {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
@@ -117,7 +120,7 @@ export const LoginPage = () => {
 
               <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-3 text-base">
                 {loading ? (
-                  <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                  <div className="w-5 h-5 rounded-full border-2 border-kb-sand border-t-kb-white animate-spin" />
                 ) : (
                   <><LogIn className="w-4 h-4" /> Sign In</>
                 )}
@@ -125,9 +128,9 @@ export const LoginPage = () => {
             </form>
 
             {/* Signup Link */}
-            <div className="mt-6 pt-6 border-t border-slate-800 text-center">
-              <p className="text-sm text-slate-500">
-                First time setup? <Link to="/signup" className="text-primary-400 hover:text-primary-300 font-semibold">Create Admin Account</Link>
+            <div className="mt-6 pt-6 border-t border-kb-sand text-center">
+              <p className="text-sm text-kb-muted">
+                First time setup? <Link to="/signup" className="text-kb-strawberry hover:text-kb-strawberry-hover font-semibold">Create Admin Account</Link>
               </p>
             </div>
           </div>

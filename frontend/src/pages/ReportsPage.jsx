@@ -63,8 +63,8 @@ export const ReportsPage = () => {
               <div className="flex items-start gap-3 flex-1 min-w-0">
                 <span className="text-2xl sm:text-3xl flex-shrink-0">{r.icon}</span>
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-slate-200">{r.title}</h3>
-                  <p className="text-sm text-slate-500 mt-0.5">{r.desc}</p>
+                  <h3 className="font-semibold text-kb-cocoa">{r.title}</h3>
+                  <p className="text-sm text-kb-muted mt-0.5">{r.desc}</p>
                 </div>
               </div>
               <button
@@ -81,7 +81,7 @@ export const ReportsPage = () => {
       </div>
 
       <div className="card p-4 sm:p-5">
-        <h3 className="font-semibold text-slate-300 mb-4">Custom Filtered Excel Export</h3>
+        <h3 className="section-header mb-4">Custom Filtered Excel Export</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           <div>
             <label className="label">Filter by Status</label>

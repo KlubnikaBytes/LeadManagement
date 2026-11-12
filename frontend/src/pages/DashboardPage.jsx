@@ -9,21 +9,28 @@ import {
 } from 'lucide-react'
 import { useSocketEvent } from '../hooks/useSocketEvent'
 
-const StatCard = ({ icon: Icon, label, value, color, link, change }) => (
-  <Link to={link || '#'} className="stat-card group cursor-pointer">
-    <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110`}>
-      <Icon className="w-6 h-6 text-white" />
+const StatCard = ({ icon: Icon, label, value, highlight = false, iconBg = 'bg-kb-cream-deep', iconColor = 'text-kb-cocoa', link }) => (
+  <Link
+    to={link || '#'}
+    className={`rounded-xl p-5 flex items-start gap-4 transition-all duration-200 cursor-pointer group border ${
+      highlight
+        ? 'bg-kb-cocoa border-kb-espresso text-kb-white shadow-sm hover:bg-kb-cocoa-hover'
+        : 'bg-kb-white border-kb-sand text-kb-text shadow-sm hover:border-kb-umber'
+    }`}
+  >
+    <div className={`w-12 h-12 rounded-xl ${highlight ? 'bg-kb-dark-surface border border-kb-dark-border' : iconBg} flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105`}>
+      <Icon className={`w-6 h-6 ${highlight ? 'text-kb-coral' : iconColor}`} />
     </div>
     <div className="min-w-0">
-      <p className="text-2xl font-bold text-slate-100">{value?.toLocaleString() ?? '—'}</p>
-      <p className="text-sm text-slate-500 mt-0.5 truncate">{label}</p>
+      <p className={`text-2xl font-bold ${highlight ? 'text-kb-coral' : 'text-kb-cocoa'}`}>{value?.toLocaleString() ?? '—'}</p>
+      <p className={`text-sm mt-0.5 truncate ${highlight ? 'text-kb-white' : 'text-kb-muted'}`}>{label}</p>
     </div>
   </Link>
 )
 
 export const DashboardPage = () => {
   const { stats, loading, error, fetchDashboard } = useAnalytics()
-  const { user, isAdmin, isTeamLeader, canImport } = useAuth()
+  const { user, canImport } = useAuth()
 
   useEffect(() => {
     fetchDashboard()
@@ -65,19 +72,19 @@ export const DashboardPage = () => {
       {/* Quick Actions */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Today's Follow-ups", icon: Calendar, count: stats?.todayFollowUps, link: '/followups?range=today', color: 'bg-blue-500' },
-          { label: 'Overdue', icon: AlertCircle, count: stats?.overdueFollowUps, link: '/followups?range=overdue', color: 'bg-red-500' },
-          { label: 'New Leads', icon: Star, count: stats?.newLeads, link: '/leads?status=NEW', color: 'bg-emerald-500' },
-          { label: 'Interested', icon: TrendingUp, count: stats?.interestedLeads, link: '/leads?status=INTERESTED', color: 'bg-purple-500' },
+          { label: "Today's Follow-ups", icon: Calendar, count: stats?.todayFollowUps, link: '/followups?range=today', iconBg: 'bg-kb-amber-bg', iconColor: 'text-kb-amber-fg', numColor: 'text-kb-cocoa' },
+          { label: 'Overdue', icon: AlertCircle, count: stats?.overdueFollowUps, link: '/followups?range=overdue', iconBg: 'bg-kb-lost-bg', iconColor: 'text-kb-crimson', numColor: 'text-kb-crimson' },
+          { label: 'New Leads', icon: Star, count: stats?.newLeads, link: '/leads?status=NEW', iconBg: 'bg-kb-cream-deep', iconColor: 'text-kb-cocoa', numColor: 'text-kb-cocoa' },
+          { label: 'Interested', icon: TrendingUp, count: stats?.interestedLeads, link: '/leads?status=INTERESTED', iconBg: 'bg-kb-teal-bg', iconColor: 'text-kb-teal-fg', numColor: 'text-kb-teal-fg' },
         ].map(item => (
-          <Link key={item.label} to={item.link} className="card p-4 hover:border-slate-700 transition-colors group">
+          <Link key={item.label} to={item.link} className="card p-4 hover:border-kb-umber transition-colors group">
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-xl ${item.color}/20 flex items-center justify-center`}>
-                <item.icon className={`w-5 h-5 text-${item.color.split('-')[1]}-400`} />
+              <div className={`w-10 h-10 rounded-xl ${item.iconBg} flex items-center justify-center flex-shrink-0`}>
+                <item.icon className={`w-5 h-5 ${item.iconColor}`} />
               </div>
-              <div>
-                <p className="text-xl font-bold text-slate-100">{item.count ?? '—'}</p>
-                <p className="text-xs text-slate-500">{item.label}</p>
+              <div className="min-w-0">
+                <p className={`text-xl font-bold ${item.numColor}`}>{item.count ?? '—'}</p>
+                <p className="text-xs text-kb-muted truncate">{item.label}</p>
               </div>
             </div>
           </Link>
@@ -86,14 +93,14 @@ export const DashboardPage = () => {
 
       {/* Main KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-        <StatCard icon={Users} label="Total Leads" value={stats?.totalLeads} color="bg-primary-600" link="/leads" />
-        <StatCard icon={Star} label="New Leads" value={stats?.newLeads} color="bg-slate-600" link="/leads?status=NEW" />
-        <StatCard icon={Phone} label="Total Calls" value={stats?.totalCalls} color="bg-blue-600" link="/calls" />
-        <StatCard icon={TrendingUp} label="Interested" value={stats?.interestedLeads} color="bg-emerald-600" link="/leads?status=INTERESTED" />
-        <StatCard icon={Clock} label="Call Later" value={stats?.callLaterLeads} color="bg-amber-600" link="/leads?status=CALL_LATER" />
-        <StatCard icon={Calendar} label="Follow-up" value={stats?.followUpLeads} color="bg-purple-600" link="/leads?status=FOLLOW_UP" />
-        <StatCard icon={CheckCircle2} label="Converted" value={stats?.convertedLeads} color="bg-green-600" link="/leads?status=CONVERTED" />
-        <StatCard icon={XCircle} label="Not Interested" value={stats?.notInterestedLeads} color="bg-red-600" link="/leads?status=NOT_INTERESTED" />
+        <StatCard icon={Users} label="Total Leads" value={stats?.totalLeads} highlight link="/leads" />
+        <StatCard icon={Star} label="New Leads" value={stats?.newLeads} iconBg="bg-kb-new-bg" iconColor="text-kb-new-fg" link="/leads?status=NEW" />
+        <StatCard icon={Phone} label="Total Calls" value={stats?.totalCalls} iconBg="bg-kb-umber-bg" iconColor="text-kb-umber-fg" link="/calls" />
+        <StatCard icon={TrendingUp} label="Interested" value={stats?.interestedLeads} iconBg="bg-kb-teal-bg" iconColor="text-kb-teal-fg" link="/leads?status=INTERESTED" />
+        <StatCard icon={Clock} label="Call Later" value={stats?.callLaterLeads} iconBg="bg-kb-amber-bg" iconColor="text-kb-amber-fg" link="/leads?status=CALL_LATER" />
+        <StatCard icon={Calendar} label="Follow-up" value={stats?.followUpLeads} iconBg="bg-kb-umber-bg" iconColor="text-kb-umber-fg" link="/leads?status=FOLLOW_UP" />
+        <StatCard icon={CheckCircle2} label="Converted" value={stats?.convertedLeads} highlight link="/leads?status=CONVERTED" />
+        <StatCard icon={XCircle} label="Not Interested" value={stats?.notInterestedLeads} iconBg="bg-kb-cold-bg" iconColor="text-kb-cold-fg" link="/leads?status=NOT_INTERESTED" />
       </div>
 
       {/* Bottom Row */}
@@ -102,33 +109,33 @@ export const DashboardPage = () => {
         <div className="md:col-span-2 card p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="section-header">Today's Follow-ups</h2>
-            <Link to="/followups?range=today" className="text-sm text-primary-400 hover:text-primary-300">View all →</Link>
+            <Link to="/followups?range=today" className="text-sm text-kb-strawberry hover:text-kb-strawberry-hover font-medium">View all →</Link>
           </div>
           {stats?.todayFollowUps === 0 ? (
-            <div className="text-center py-8 text-slate-500">
-              <Calendar className="w-8 h-8 mx-auto mb-2 opacity-40" />
+            <div className="text-center py-8 text-kb-muted">
+              <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50 text-kb-umber" />
               <p className="text-sm">No follow-ups scheduled for today</p>
             </div>
           ) : (
-            <div className="flex items-center gap-3 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-              <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-blue-400" />
+            <div className="flex items-center gap-3 p-4 bg-kb-amber-bg border border-kb-amber-border rounded-xl">
+              <div className="w-12 h-12 bg-kb-white rounded-xl border border-kb-amber-border flex items-center justify-center">
+                <Calendar className="w-6 h-6 text-kb-amber-fg" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-blue-400">{stats?.todayFollowUps}</p>
-                <p className="text-sm text-slate-400">follow-ups due today</p>
+                <p className="text-2xl font-bold text-kb-amber-fg">{stats?.todayFollowUps}</p>
+                <p className="text-sm text-kb-text">follow-ups due today</p>
               </div>
               <Link to="/followups?range=today" className="ml-auto btn-secondary text-sm">View</Link>
             </div>
           )}
           {stats?.overdueFollowUps > 0 && (
-            <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-xl mt-3">
-              <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center">
-                <AlertCircle className="w-6 h-6 text-red-400" />
+            <div className="flex items-center gap-3 p-4 bg-kb-lost-bg border border-kb-lost-border rounded-xl mt-3">
+              <div className="w-12 h-12 bg-kb-white rounded-xl border border-kb-lost-border flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-kb-crimson" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-red-400">{stats?.overdueFollowUps}</p>
-                <p className="text-sm text-slate-400">overdue follow-ups</p>
+                <p className="text-2xl font-bold text-kb-crimson">{stats?.overdueFollowUps}</p>
+                <p className="text-sm text-kb-text">overdue follow-ups</p>
               </div>
               <Link to="/followups?range=overdue" className="ml-auto btn-danger text-sm">Handle Now</Link>
             </div>
@@ -140,12 +147,12 @@ export const DashboardPage = () => {
           <h2 className="section-header mb-4">Conversion Overview</h2>
           <div className="space-y-3">
             {[
-              { label: 'Conversion Rate', value: stats?.totalLeads ? `${((stats?.convertedLeads / stats?.totalLeads) * 100).toFixed(1)}%` : '0%', color: 'text-emerald-400' },
-              { label: 'Lost Leads', value: stats?.lostLeads || 0, color: 'text-red-400' },
-              { label: 'In Pipeline', value: (stats?.interestedLeads || 0) + (stats?.followUpLeads || 0), color: 'text-primary-400' },
+              { label: 'Conversion Rate', value: stats?.totalLeads ? `${((stats?.convertedLeads / stats?.totalLeads) * 100).toFixed(1)}%` : '0%', color: 'text-kb-won-fg' },
+              { label: 'Lost Leads', value: stats?.lostLeads || 0, color: 'text-kb-crimson' },
+              { label: 'In Pipeline', value: (stats?.interestedLeads || 0) + (stats?.followUpLeads || 0), color: 'text-kb-strawberry' },
             ].map(item => (
-              <div key={item.label} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-xl">
-                <span className="text-sm text-slate-400">{item.label}</span>
+              <div key={item.label} className="flex items-center justify-between p-3 bg-kb-cream-deep border border-kb-sand rounded-xl">
+                <span className="text-sm text-kb-muted">{item.label}</span>
                 <span className={`font-bold ${item.color}`}>{item.value}</span>
               </div>
             ))}

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { Eye, EyeOff, Zap, UserPlus } from 'lucide-react'
+import { Eye, EyeOff, UserPlus } from 'lucide-react'
 
 export const SignupPage = () => {
   const [name, setName] = useState('')
@@ -24,47 +24,50 @@ export const SignupPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex">
+    <div className="min-h-screen bg-kb-cream flex">
       {/* Left - Branding */}
-      <div className="hidden lg:flex flex-col justify-center px-16 w-1/2 bg-gradient-to-br from-slate-950 via-primary-950/30 to-purple-950/20 border-r border-slate-800">
+      <div className="hidden lg:flex flex-col justify-center px-16 w-1/2 kb-brand-panel border-r border-kb-cocoa">
         <div className="max-w-md">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/20">
-              <Zap className="w-7 h-7 text-white" />
+          <div className="flex items-center gap-4 mb-8">
+            <div className="w-16 h-16 rounded-full bg-kb-cream p-1.5 ring-2 ring-kb-strawberry flex items-center justify-center shadow-lg overflow-hidden">
+              <img src="/klubnika-logo.png" alt="Klubnika Bytes" className="w-full h-full object-contain" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">KlubCRM</h1>
-              <p className="text-slate-500 text-sm">Sales Management System</p>
+              <h1 className="text-2xl font-bold text-kb-white">KlubCRM</h1>
+              <p className="text-kb-taupe text-sm">Sales Management System</p>
             </div>
           </div>
 
-          <h2 className="text-4xl font-bold text-white mb-4 leading-tight">
-            Set up your <span className="text-primary-400">admin account</span> to get started.
+          <h2 className="text-4xl font-bold text-kb-white mb-4 leading-tight">
+            Set up your <span className="text-kb-coral">admin account</span> to get started.
           </h2>
-          <p className="text-slate-400 text-lg mb-10">
+          <p className="text-kb-dark-muted text-lg mb-10">
             Create the first admin account to set up your team, import leads, and manage your entire sales pipeline.
           </p>
         </div>
       </div>
 
       {/* Right - Signup Form */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8">
+      <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-8 bg-kb-cream">
         <div className="w-full max-w-md">
           <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <Zap className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 rounded-full bg-kb-white p-1 ring-2 ring-kb-strawberry flex items-center justify-center shadow-sm overflow-hidden">
+              <img src="/klubnika-logo.png" alt="Klubnika Bytes" className="w-full h-full object-contain" />
             </div>
-            <h1 className="text-xl font-bold text-white">KlubCRM</h1>
+            <div>
+              <h1 className="text-xl font-bold text-kb-cocoa">KlubCRM</h1>
+              <p className="text-xs text-kb-muted">Klubnika Bytes</p>
+            </div>
           </div>
 
           <div className="card p-8">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-slate-100">Create Admin Account</h2>
-              <p className="text-slate-500 mt-1">Register the main admin for the CRM</p>
+              <h2 className="text-2xl font-bold text-kb-cocoa">Create Admin Account</h2>
+              <p className="text-kb-muted mt-1">Register the main admin for the CRM</p>
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+              <div className="mb-4 p-3 bg-kb-lost-bg border border-kb-lost-border rounded-xl text-kb-crimson text-sm font-medium">
                 {error}
               </div>
             )}
@@ -109,7 +112,7 @@ export const SignupPage = () => {
                     required
                     minLength={6}
                   />
-                  <button type="button" onClick={() => setShowPwd(!showPwd)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                  <button type="button" onClick={() => setShowPwd(!showPwd)} className="absolute right-3 top-1/2 -translate-y-1/2 text-kb-umber hover:text-kb-cocoa">
                     {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
@@ -117,16 +120,16 @@ export const SignupPage = () => {
 
               <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-3 text-base">
                 {loading ? (
-                  <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                  <div className="w-5 h-5 rounded-full border-2 border-kb-sand border-t-kb-white animate-spin" />
                 ) : (
                   <><UserPlus className="w-4 h-4" /> Create Account</>
                 )}
               </button>
             </form>
 
-            <div className="mt-6 pt-6 border-t border-slate-800 text-center">
-              <p className="text-sm text-slate-500">
-                Already have an account? <a href="/login" className="text-primary-400 hover:text-primary-300 font-semibold">Sign In</a>
+            <div className="mt-6 pt-6 border-t border-kb-sand text-center">
+              <p className="text-sm text-kb-muted">
+                Already have an account? <a href="/login" className="text-kb-strawberry hover:text-kb-strawberry-hover font-semibold">Sign In</a>
               </p>
             </div>
           </div>

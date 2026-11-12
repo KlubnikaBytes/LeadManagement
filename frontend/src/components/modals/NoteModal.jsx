@@ -40,7 +40,7 @@ export const NoteModal = ({ isOpen, onClose, lead, onSuccess }) => {
             required
             autoFocus
           />
-          <p className="text-xs text-slate-600 mt-1">{text.length} characters</p>
+          <p className="text-xs text-kb-umber mt-1">{text.length} characters</p>
         </div>
         <div className="flex gap-3 pt-2">
           <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancel</button>

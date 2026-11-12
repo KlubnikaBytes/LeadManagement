@@ -1,8 +1,8 @@
 import { getInitials } from '../../utils/helpers'
 
 const colors = [
-  'bg-primary-600', 'bg-emerald-600', 'bg-amber-600', 'bg-rose-600',
-  'bg-purple-600', 'bg-cyan-600', 'bg-pink-600', 'bg-indigo-600',
+  'bg-kb-strawberry', 'bg-kb-cocoa', 'bg-kb-umber', 'bg-kb-crimson',
+  'bg-kb-espresso', 'bg-kb-won-fg', 'bg-kb-teal-fg', 'bg-kb-amber-fg',
 ]
 
 const getColor = (name) => {
@@ -16,11 +16,11 @@ export const Avatar = ({ name, src, size = 'md' }) => {
   const sizeClass = sizes[size] || sizes.md
 
   if (src) {
-    return <img src={src} alt={name} className={`${sizeClass} rounded-full object-cover ring-2 ring-slate-700`} />
+    return <img src={src} alt={name} className={`${sizeClass} rounded-full object-cover ring-2 ring-kb-sand`} />
   }
 
   return (
-    <div className={`${sizeClass} ${getColor(name)} rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0`}>
+    <div className={`${sizeClass} ${getColor(name)} rounded-full flex items-center justify-center text-kb-white font-semibold flex-shrink-0`}>
       {getInitials(name)}
     </div>
   )

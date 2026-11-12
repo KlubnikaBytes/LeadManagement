@@ -1,9 +1,8 @@
-import { useState, useRef } from 'react'
-import { Upload, FileSpreadsheet, AlertCircle, CheckCircle2, X } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Upload, FileSpreadsheet, X } from 'lucide-react'
 import { leadsService } from '../services/leads.service'
 import { usersService } from '../services/users.service'
 import { useAuth } from '../context/AuthContext'
-import { useEffect } from 'react'
 import toast from 'react-hot-toast'
 
 export const ImportPage = () => {
@@ -62,15 +61,19 @@ export const ImportPage = () => {
 
       <div className="card p-5 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-slate-300">Upload File</h3>
-          <button onClick={downloadTemplate} className="btn-ghost text-sm text-primary-400 hover:text-primary-300">
+          <h3 className="section-header">Upload File</h3>
+          <button onClick={downloadTemplate} className="btn-ghost text-sm text-kb-strawberry hover:text-kb-strawberry-hover">
             Download Template
           </button>
         </div>
 
         {/* Drop Zone */}
         <div
-          className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${dragging ? 'border-primary-500 bg-primary-500/10' : 'border-slate-700 hover:border-slate-600 hover:bg-slate-800/30'}`}
+          className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${
+            dragging
+              ? 'border-kb-strawberry bg-kb-strawberry-tint'
+              : 'border-kb-sand bg-kb-cream hover:border-kb-umber hover:bg-kb-cream-deep'
+          }`}
           onDrop={handleDrop}
           onDragOver={e => { e.preventDefault(); setDragging(true) }}
           onDragLeave={() => setDragging(false)}
@@ -79,20 +82,20 @@ export const ImportPage = () => {
           <input ref={fileInputRef} type="file" accept=".csv,.xlsx,.xls" onChange={e => setFile(e.target.files[0])} className="hidden" />
           {file ? (
             <div className="flex items-center justify-center gap-3">
-              <FileSpreadsheet className="w-8 h-8 text-emerald-400" />
+              <FileSpreadsheet className="w-8 h-8 text-kb-teal-fg" />
               <div className="text-left">
-                <p className="font-semibold text-slate-200">{file.name}</p>
-                <p className="text-xs text-slate-500">{(file.size / 1024).toFixed(1)} KB</p>
+                <p className="font-semibold text-kb-cocoa">{file.name}</p>
+                <p className="text-xs text-kb-muted">{(file.size / 1024).toFixed(1)} KB</p>
               </div>
-              <button onClick={(e) => { e.stopPropagation(); setFile(null) }} className="btn-icon text-red-400 ml-2">
+              <button onClick={(e) => { e.stopPropagation(); setFile(null) }} className="btn-icon text-kb-crimson ml-2">
                 <X className="w-4 h-4" />
               </button>
             </div>
           ) : (
             <div>
-              <Upload className="w-10 h-10 text-slate-500 mx-auto mb-3" />
-              <p className="text-slate-400 font-medium">Drop your file here, or click to browse</p>
-              <p className="text-xs text-slate-600 mt-1">Supports CSV, XLSX, XLS — Max 10MB</p>
+              <Upload className="w-10 h-10 text-kb-umber mx-auto mb-3" />
+              <p className="text-kb-cocoa font-medium">Drop your file here, or click to browse</p>
+              <p className="text-xs text-kb-muted mt-1">Supports CSV, XLSX, XLS — Max 10MB</p>
             </div>
           )}
         </div>
@@ -107,16 +110,16 @@ export const ImportPage = () => {
         </div>
 
         {/* Expected Columns */}
-        <div className="bg-slate-800/50 rounded-xl p-4">
-          <p className="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">Expected CSV Columns</p>
-          <p className="text-xs text-slate-500 font-mono leading-relaxed">
+        <div className="bg-kb-cream-deep border border-kb-sand rounded-xl p-4">
+          <p className="text-xs font-semibold text-kb-cocoa mb-2 uppercase tracking-wider">Expected CSV Columns</p>
+          <p className="text-xs text-kb-muted font-mono leading-relaxed">
             Name, Company, Phone, Email, City, State, Country, Source, Status, Priority, InterestedIn, Budget, Website, AlternatePhone, BusinessType
           </p>
         </div>
 
         <button onClick={handleSubmit} disabled={loading || !file} className="btn-primary w-full justify-center py-3">
           {loading ? (
-            <><div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Importing...</>
+            <><div className="w-4 h-4 rounded-full border-2 border-kb-sand border-t-kb-white animate-spin" /> Importing...</>
           ) : (
             <><Upload className="w-4 h-4" /> Import Leads</>
           )}
@@ -126,28 +129,28 @@ export const ImportPage = () => {
       {/* Results */}
       {result && (
         <div className="card p-5 space-y-4 animate-slide-up">
-          <h3 className="font-semibold text-slate-300">Import Results</h3>
+          <h3 className="section-header">Import Results</h3>
 
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: 'Total Records', value: result.total, color: 'text-slate-200' },
-              { label: 'Successfully Imported', value: result.imported, color: 'text-green-400' },
-              { label: 'Duplicates Skipped', value: result.duplicates, color: 'text-amber-400' },
-              { label: 'Invalid Records', value: result.invalid, color: 'text-red-400' },
+              { label: 'Total Records', value: result.total, color: 'text-kb-cocoa' },
+              { label: 'Successfully Imported', value: result.imported, color: 'text-kb-won-fg' },
+              { label: 'Duplicates Skipped', value: result.duplicates, color: 'text-kb-amber-fg' },
+              { label: 'Invalid Records', value: result.invalid, color: 'text-kb-crimson' },
             ].map(s => (
-              <div key={s.label} className="bg-slate-800/50 rounded-xl p-4 text-center">
+              <div key={s.label} className="bg-kb-cream-deep border border-kb-sand rounded-xl p-4 text-center">
                 <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-                <p className="text-xs text-slate-500 mt-1">{s.label}</p>
+                <p className="text-xs text-kb-muted mt-1">{s.label}</p>
               </div>
             ))}
           </div>
 
           {result.errors?.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm font-semibold text-red-400">Invalid Records:</p>
+              <p className="text-sm font-semibold text-kb-crimson">Invalid Records:</p>
               <div className="max-h-40 overflow-y-auto space-y-1">
                 {result.errors.map((e, i) => (
-                  <div key={i} className="text-xs text-slate-400 bg-red-500/10 border border-red-500/20 rounded-lg p-2">
+                  <div key={i} className="text-xs text-kb-text bg-kb-lost-bg border border-kb-lost-border rounded-lg p-2">
                     <span className="font-semibold">Row {e.row}:</span> {e.errors.join(', ')}
                   </div>
                 ))}
@@ -157,10 +160,10 @@ export const ImportPage = () => {
 
           {result.duplicateLeads?.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm font-semibold text-amber-400">Duplicate Records Skipped:</p>
+              <p className="text-sm font-semibold text-kb-amber-fg">Duplicate Records Skipped:</p>
               <div className="max-h-40 overflow-y-auto space-y-1">
                 {result.duplicateLeads.map((d, i) => (
-                  <div key={i} className="text-xs text-slate-400 bg-amber-500/10 border border-amber-500/20 rounded-lg p-2">
+                  <div key={i} className="text-xs text-kb-text bg-kb-amber-bg border border-kb-amber-border rounded-lg p-2">
                     Row {d.row}: {d.name} ({d.phone}) — already exists
                   </div>
                 ))}

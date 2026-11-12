@@ -154,12 +154,12 @@ export const LeadsPage = () => {
             className="w-full sm:flex-1 sm:min-w-48"
           />
           {isSalesExec && (
-            <div className="inline-flex rounded-xl bg-slate-900/80 border border-slate-800 p-1">
+            <div className="inline-flex rounded-xl bg-kb-cream-deep border border-kb-sand p-1">
               <button
                 type="button"
                 onClick={() => applyFilters({ ...filters, mine: '' })}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                  !filters.mine ? 'bg-primary-500 text-white' : 'text-slate-400 hover:text-slate-200'
+                  !filters.mine ? 'bg-kb-strawberry text-kb-white' : 'text-kb-muted hover:text-kb-cocoa'
                 }`}
               >
                 All Clients
@@ -168,7 +168,7 @@ export const LeadsPage = () => {
                 type="button"
                 onClick={() => applyFilters({ ...filters, mine: 'true' })}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                  filters.mine === 'true' ? 'bg-primary-500 text-white' : 'text-slate-400 hover:text-slate-200'
+                  filters.mine === 'true' ? 'bg-kb-strawberry text-kb-white' : 'text-kb-muted hover:text-kb-cocoa'
                 }`}
               >
                 My Assigned
@@ -177,7 +177,7 @@ export const LeadsPage = () => {
           )}
           {(isAdmin || isTeamLeader) && salesUsers.length > 0 && (
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <Users className="w-4 h-4 text-slate-400 shrink-0" />
+              <Users className="w-4 h-4 text-kb-umber shrink-0" />
               <select
                 value={filters.member || ''}
                 onChange={(e) => applyFilters({ ...filters, member: e.target.value })}
@@ -196,11 +196,11 @@ export const LeadsPage = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`btn-secondary text-sm flex-1 sm:flex-initial justify-center ${activeFiltersCount > 0 ? 'border-primary-500 text-primary-400' : ''}`}
+              className={`btn-secondary text-sm flex-1 sm:flex-initial justify-center ${activeFiltersCount > 0 ? 'border-kb-strawberry text-kb-strawberry bg-kb-strawberry-tint' : ''}`}
             >
               <Filter className="w-4 h-4" />
               Filters
-              {activeFiltersCount > 0 && <span className="bg-primary-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{activeFiltersCount}</span>}
+              {activeFiltersCount > 0 && <span className="bg-kb-strawberry text-kb-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{activeFiltersCount}</span>}
             </button>
             <button onClick={loadLeads} className="btn-icon flex-shrink-0" title="Refresh">
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -211,25 +211,25 @@ export const LeadsPage = () => {
         {(filters.member || filters.createdBy || filters.assignedTo) && salesUsers.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 text-xs">
             {filters.member && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-500/15 text-primary-300 border border-primary-500/30">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-kb-strawberry-tint text-kb-crimson border border-kb-lost-border font-medium">
                 Member: {salesUsers.find(u => u._id === filters.member)?.name || 'Selected'}
-                <button onClick={() => applyFilters({ ...filters, member: '' })} className="hover:text-white" aria-label="Clear member filter">
+                <button onClick={() => applyFilters({ ...filters, member: '' })} className="hover:text-kb-cocoa" aria-label="Clear member filter">
                   <X className="w-3 h-3" />
                 </button>
               </span>
             )}
             {filters.createdBy && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-kb-umber-bg text-kb-umber-fg border border-kb-umber-border font-medium">
                 Added by: {salesUsers.find(u => u._id === filters.createdBy)?.name || 'Selected'}
-                <button onClick={() => applyFilters({ ...filters, createdBy: '' })} className="hover:text-white" aria-label="Clear added by filter">
+                <button onClick={() => applyFilters({ ...filters, createdBy: '' })} className="hover:text-kb-cocoa" aria-label="Clear added by filter">
                   <X className="w-3 h-3" />
                 </button>
               </span>
             )}
             {filters.assignedTo && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-kb-new-bg text-kb-new-fg border border-kb-new-border font-medium">
                 Assigned to: {filters.assignedTo === 'unassigned' ? 'Unassigned' : (salesUsers.find(u => u._id === filters.assignedTo)?.name || 'Selected')}
-                <button onClick={() => applyFilters({ ...filters, assignedTo: '' })} className="hover:text-white" aria-label="Clear assigned to filter">
+                <button onClick={() => applyFilters({ ...filters, assignedTo: '' })} className="hover:text-kb-cocoa" aria-label="Clear assigned to filter">
                   <X className="w-3 h-3" />
                 </button>
               </span>
@@ -238,7 +238,7 @@ export const LeadsPage = () => {
         )}
 
         {showFilters && (
-          <div className="pt-3 border-t border-slate-800 animate-slide-up">
+          <div className="pt-3 border-t border-kb-sand animate-slide-up">
             <LeadFilters
               filters={filters}
               onChange={applyFilters}
@@ -251,7 +251,7 @@ export const LeadsPage = () => {
       {/* Error */}
       {error && (
         <div className="card p-6 text-center">
-          <p className="text-red-400 mb-3">{error}</p>
+          <p className="text-kb-crimson font-medium mb-3">{error}</p>
           <button onClick={loadLeads} className="btn-secondary text-sm">Retry</button>
         </div>
       )}

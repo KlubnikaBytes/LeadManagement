@@ -18,11 +18,11 @@ import toast from 'react-hot-toast'
 
 const FormSection = ({ title, icon: Icon, description, children }) => (
   <div className="card p-5">
-    <div className="flex items-center gap-2.5 mb-2 pb-3 border-b border-slate-800">
-      {Icon && <Icon className="w-5 h-5 text-primary-400" />}
+    <div className="flex items-center gap-2.5 mb-2 pb-3 border-b border-kb-sand">
+      {Icon && <Icon className="w-5 h-5 text-kb-strawberry" />}
       <div>
-        <h3 className="font-semibold text-slate-200 text-base">{title}</h3>
-        {description && <p className="text-xs text-slate-500 mt-0.5">{description}</p>}
+        <h3 className="font-semibold text-kb-cocoa text-base">{title}</h3>
+        {description && <p className="text-xs text-kb-muted mt-0.5">{description}</p>}
       </div>
     </div>
     <div className="space-y-4 pt-2">{children}</div>
@@ -32,11 +32,11 @@ const FormSection = ({ title, icon: Icon, description, children }) => (
 const FormGroup = ({ label, required, error, hint, children }) => (
   <div>
     <div className="flex items-center justify-between mb-1.5">
-      <label className="label mb-0">{label}{required && <span className="text-red-400 ml-0.5">*</span>}</label>
-      {hint && <span className="text-xs text-slate-500">{hint}</span>}
+      <label className="label mb-0">{label}{required && <span className="text-kb-crimson ml-0.5">*</span>}</label>
+      {hint && <span className="text-xs text-kb-muted">{hint}</span>}
     </div>
     {children}
-    {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
+    {error && <p className="text-kb-crimson text-xs mt-1">{error}</p>}
   </div>
 )
 
@@ -104,7 +104,7 @@ const CustomSelect = ({
         <button
           type="button"
           disabled={savingCustom}
-          className="btn-ghost px-2 text-slate-400 text-xs"
+          className="btn-ghost px-2 text-kb-muted text-xs"
           onClick={() => setIsAdding(false)}
         >
           Cancel
@@ -138,7 +138,7 @@ const CustomSelect = ({
         <option value="" disabled>{placeholder}</option>
         {allOptions.map(o => <option key={o} value={o}>{o}</option>)}
         {canAddCustom && (
-          <option value="__CUSTOM__" className="font-semibold text-primary-400 bg-slate-800">
+          <option value="__CUSTOM__" className="font-semibold text-kb-strawberry bg-kb-cream-deep">
             + Add Custom...
           </option>
         )}
@@ -381,7 +381,7 @@ export const LeadFormPage = () => {
   if (loadingLead) {
     return (
       <div className="flex justify-center py-20">
-        <div className="w-8 h-8 rounded-full border-2 border-slate-700 border-t-primary-500 animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-kb-sand border-t-kb-strawberry animate-spin" />
       </div>
     )
   }
@@ -401,14 +401,14 @@ export const LeadFormPage = () => {
 
       {/* Duplicate Warning */}
       {duplicate && (
-        <div className="card p-4 border border-amber-500/30 bg-amber-500/5">
+        <div className="card p-4 border border-kb-amber-border bg-kb-amber-bg">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-kb-amber-fg flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-amber-400">Possible duplicate detected</p>
-              <p className="text-sm text-slate-400 mt-1">A lead with this phone/email already exists in the system:</p>
-              <p className="text-sm text-slate-200 font-medium mt-1">{duplicate.name} ({duplicate.companyName || 'No Company'}) — {duplicate.phone}</p>
-              <Link to={`/leads/${duplicate._id}`} className="text-sm text-primary-400 hover:text-primary-300 mt-1 inline-block">View existing lead →</Link>
+              <p className="font-semibold text-kb-amber-fg">Possible duplicate detected</p>
+              <p className="text-sm text-kb-text mt-1">A lead with this phone/email already exists in the system:</p>
+              <p className="text-sm text-kb-cocoa font-medium mt-1">{duplicate.name} ({duplicate.companyName || 'No Company'}) — {duplicate.phone}</p>
+              <Link to={`/leads/${duplicate._id}`} className="text-sm text-kb-strawberry hover:text-kb-strawberry-hover font-semibold mt-1 inline-block">View existing lead →</Link>
             </div>
           </div>
         </div>
@@ -428,7 +428,7 @@ export const LeadFormPage = () => {
             <FormGroup label="Company / Business Name" required error={errors.companyName}>
               <input
                 type="text"
-                className={`input ${errors.companyName ? 'border-red-500' : ''}`}
+                className={`input ${errors.companyName ? 'border-kb-crimson' : ''}`}
                 placeholder="e.g. Acme Tech Solutions, Green Foods Pvt Ltd"
                 value={form.companyName}
                 onChange={e => handleChange('companyName', e.target.value)}
@@ -476,8 +476,8 @@ export const LeadFormPage = () => {
           </div>
 
           {/* Full Address Details */}
-          <div className="pt-2 border-t border-slate-800/60">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Address & Location</p>
+          <div className="pt-2 border-t border-kb-sand">
+            <p className="text-xs font-semibold text-kb-muted uppercase tracking-wider mb-3">Address & Location</p>
             <div className="space-y-3">
               <FormGroup label="Street Address / Building / Landmark">
                 <input
@@ -568,7 +568,7 @@ export const LeadFormPage = () => {
             <FormGroup label="POC Name (Full Name)" required error={errors.name}>
               <input
                 type="text"
-                className={`input ${errors.name ? 'border-red-500' : ''}`}
+                className={`input ${errors.name ? 'border-kb-crimson' : ''}`}
                 placeholder="e.g. Rajesh Sharma"
                 value={form.name}
                 onChange={e => handleChange('name', e.target.value)}
@@ -588,7 +588,7 @@ export const LeadFormPage = () => {
             <FormGroup label="Primary Phone" required error={errors.phone}>
               <input
                 type="tel"
-                className={`input ${errors.phone ? 'border-red-500' : ''}`}
+                className={`input ${errors.phone ? 'border-kb-crimson' : ''}`}
                 placeholder="+91 9876543210"
                 value={form.phone}
                 onChange={e => handleChange('phone', e.target.value)}
@@ -609,7 +609,7 @@ export const LeadFormPage = () => {
             <FormGroup label="Email Address" error={errors.email}>
               <input
                 type="email"
-                className={`input ${errors.email ? 'border-red-500' : ''}`}
+                className={`input ${errors.email ? 'border-kb-crimson' : ''}`}
                 placeholder="poc.email@example.com"
                 value={form.email}
                 onChange={e => handleChange('email', e.target.value)}
@@ -737,8 +737,8 @@ export const LeadFormPage = () => {
                     onClick={() => handleChange('priority', p)}
                     className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all ${
                       form.priority === p
-                        ? 'border-primary-500 bg-primary-500/15 text-primary-300 ring-1 ring-primary-500'
-                        : 'border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                        ? 'border-kb-strawberry bg-kb-strawberry-tint text-kb-strawberry ring-1 ring-kb-strawberry'
+                        : 'border-kb-sand bg-kb-white text-kb-muted hover:border-kb-umber hover:text-kb-cocoa'
                     }`}
                   >
                     {p}
@@ -770,26 +770,26 @@ export const LeadFormPage = () => {
                   </select>
                 </FormGroup>
                 {isEdit && leadMeta ? (
-                  <div className="rounded-xl bg-slate-900/70 border border-slate-800 p-2.5 text-xs text-slate-400 space-y-1">
+                  <div className="rounded-xl bg-kb-cream-deep border border-kb-sand p-2.5 text-xs text-kb-muted space-y-1">
                     <div className="flex items-center justify-between gap-2">
                       <span>Created By:</span>
-                      <span className="text-slate-200 font-medium">{leadMeta.createdBy?.name || 'System'}</span>
+                      <span className="text-kb-cocoa font-medium">{leadMeta.createdBy?.name || 'System'}</span>
                     </div>
                     <div className="flex items-center justify-between gap-2">
                       <span>Primary Assigned:</span>
-                      <span className="text-primary-300 font-medium">
+                      <span className="text-kb-strawberry font-medium">
                         {leadMeta.primaryAssignedTo?.name || 'Not assigned yet'}
                       </span>
                     </div>
                     {leadMeta.reassignedBy && (
                       <div className="flex items-center justify-between gap-2">
                         <span>Last Reassigned By:</span>
-                        <span className="text-amber-300 font-medium">{leadMeta.reassignedBy.name}</span>
+                        <span className="text-kb-amber-fg font-medium">{leadMeta.reassignedBy.name}</span>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-kb-muted">
                     First assignee is saved as Primary Assigned; managers can reassign anytime.
                   </p>
                 )}

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Phone, Clock, CheckCircle2 } from 'lucide-react'
+import { Clock } from 'lucide-react'
 import { callsService } from '../services/calls.service'
 import { Avatar } from '../components/ui/Avatar'
 import { Pagination } from '../components/ui/Pagination'
@@ -9,14 +9,14 @@ import { EmptyState } from '../components/ui/EmptyState'
 import { formatDateTime } from '../utils/helpers'
 
 const OUTCOME_COLORS = {
-  Connected: 'text-green-400 bg-green-500/10',
-  'No Answer': 'text-slate-400 bg-slate-700',
-  Busy: 'text-amber-400 bg-amber-500/10',
-  'Call Back Requested': 'text-blue-400 bg-blue-500/10',
-  Interested: 'text-emerald-400 bg-emerald-500/10',
-  'Not Interested': 'text-red-400 bg-red-500/10',
-  'Wrong Number': 'text-slate-400 bg-slate-700',
-  Converted: 'text-purple-400 bg-purple-500/10',
+  Connected: 'bg-kb-won-bg text-kb-won-fg border border-kb-won-border',
+  'No Answer': 'bg-kb-cold-bg text-kb-cold-fg border border-kb-cold-border',
+  Busy: 'bg-kb-amber-bg text-kb-amber-fg border border-kb-amber-border',
+  'Call Back Requested': 'bg-kb-umber-bg text-kb-umber-fg border border-kb-umber-border',
+  Interested: 'bg-kb-teal-bg text-kb-teal-fg border border-kb-teal-border',
+  'Not Interested': 'bg-kb-lost-bg text-kb-lost-fg border border-kb-lost-border',
+  'Wrong Number': 'bg-kb-cold-bg text-kb-cold-fg border border-kb-cold-border',
+  Converted: 'bg-kb-won-bg text-kb-won-fg border border-kb-won-border',
 }
 
 export const CallsPage = () => {
@@ -54,28 +54,28 @@ export const CallsPage = () => {
           {/* Mobile & Tablet Cards */}
           <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-3 p-3 sm:p-4">
             {calls.map(call => (
-              <div key={call._id} className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+              <div key={call._id} className="p-4 rounded-xl bg-kb-cream-deep border border-kb-sand space-y-2">
                 <div className="flex items-start justify-between gap-2">
-                  <Link to={`/leads/${call.lead?._id}`} className="min-w-0 flex-1 hover:text-primary-400">
-                    <p className="font-medium text-slate-200 truncate">{call.lead?.name}</p>
-                    <p className="text-xs text-slate-500">{call.lead?.phone}</p>
+                  <Link to={`/leads/${call.lead?._id}`} className="min-w-0 flex-1 group">
+                    <p className="font-medium text-kb-cocoa group-hover:text-kb-strawberry transition-colors truncate">{call.lead?.name}</p>
+                    <p className="text-xs text-kb-muted">{call.lead?.phone}</p>
                   </Link>
-                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 whitespace-nowrap ${OUTCOME_COLORS[call.outcome] || 'text-slate-400 bg-slate-700'}`}>
+                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 whitespace-nowrap ${OUTCOME_COLORS[call.outcome] || 'bg-kb-cold-bg text-kb-cold-fg border border-kb-cold-border'}`}>
                     {call.outcome}
                   </span>
                 </div>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
-                  <span>By: <strong className="text-slate-300 font-medium">{call.calledBy?.name}</strong></span>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-kb-muted">
+                  <span>By: <strong className="text-kb-cocoa font-medium">{call.calledBy?.name}</strong></span>
                   <span>{formatDateTime(call.callDate)}</span>
                   <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" />{call.duration || '—'}</span>
                 </div>
-                {call.notes && <p className="text-xs text-slate-400 italic">"{call.notes}"</p>}
+                {call.notes && <p className="text-xs text-kb-text italic">"{call.notes}"</p>}
               </div>
             ))}
           </div>
 
           {/* Desktop Table */}
-          <div className="hidden lg:block table-container">
+          <div className="hidden lg:block table-container border-0 rounded-none">
             <table className="table">
               <thead>
                 <tr>
@@ -91,31 +91,31 @@ export const CallsPage = () => {
                 {calls.map(call => (
                   <tr key={call._id}>
                     <td>
-                      <Link to={`/leads/${call.lead?._id}`} className="hover:text-primary-400 transition-colors">
-                        <p className="font-medium text-slate-200">{call.lead?.name}</p>
-                        <p className="text-xs text-slate-500">{call.lead?.phone}</p>
+                      <Link to={`/leads/${call.lead?._id}`} className="group transition-colors">
+                        <p className="font-medium text-kb-cocoa group-hover:text-kb-strawberry transition-colors">{call.lead?.name}</p>
+                        <p className="text-xs text-kb-muted">{call.lead?.phone}</p>
                       </Link>
                     </td>
                     <td>
                       <div className="flex items-center gap-2">
                         <Avatar name={call.calledBy?.name} size="sm" />
-                        <span className="text-sm text-slate-300">{call.calledBy?.name}</span>
+                        <span className="text-sm text-kb-text">{call.calledBy?.name}</span>
                       </div>
                     </td>
-                    <td className="text-sm text-slate-400">{formatDateTime(call.callDate)}</td>
+                    <td className="text-sm text-kb-muted">{formatDateTime(call.callDate)}</td>
                     <td>
-                      <span className="flex items-center gap-1 text-sm text-slate-400">
+                      <span className="flex items-center gap-1 text-sm text-kb-muted">
                         <Clock className="w-3 h-3" />
                         {call.duration || '—'}
                       </span>
                     </td>
                     <td>
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${OUTCOME_COLORS[call.outcome] || 'text-slate-400 bg-slate-700'}`}>
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${OUTCOME_COLORS[call.outcome] || 'bg-kb-cold-bg text-kb-cold-fg border border-kb-cold-border'}`}>
                         {call.outcome}
                       </span>
                     </td>
                     <td>
-                      <p className="text-xs text-slate-500 max-w-xs truncate">{call.notes || '—'}</p>
+                      <p className="text-xs text-kb-muted max-w-xs truncate">{call.notes || '—'}</p>
                     </td>
                   </tr>
                 ))}

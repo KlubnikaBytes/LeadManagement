@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Phone, PhoneCall, PhoneOff, PhoneMissed } from 'lucide-react'
+import { Phone } from 'lucide-react'
 import { Modal } from '../ui/Modal'
 import { leadsService } from '../../services/leads.service'
 import { CALL_OUTCOMES, FOLLOWUP_TYPES } from '../../utils/constants'
@@ -75,23 +75,23 @@ export const CallModal = ({ isOpen, onClose, lead, onSuccess }) => {
     <Modal isOpen={isOpen} onClose={handleClose} title={step === 1 ? `📞 Call ${lead.name}` : '📝 Log Call Details'} size="md">
       {step === 1 ? (
         <div className="space-y-4">
-          <div className="card p-4 text-center">
-            <p className="text-2xl font-bold text-slate-100">{lead.name}</p>
-            <p className="text-slate-500 text-sm">{lead.companyName}</p>
-            <a href={`tel:${lead.phone}`} className="mt-2 inline-flex items-center gap-2 text-primary-400 hover:text-primary-300 font-mono text-lg font-semibold">
+          <div className="bg-kb-cream-deep border border-kb-sand rounded-xl p-4 text-center">
+            <p className="text-2xl font-bold text-kb-cocoa">{lead.name}</p>
+            <p className="text-kb-muted text-sm">{lead.companyName}</p>
+            <a href={`tel:${lead.phone}`} className="mt-2 inline-flex items-center gap-2 text-kb-strawberry hover:text-kb-strawberry-hover font-mono text-lg font-semibold">
               <Phone className="w-5 h-5" />
               {lead.phone}
             </a>
           </div>
 
-          <p className="text-center text-slate-400 text-sm font-medium">What happened during the call?</p>
+          <p className="text-center text-kb-muted text-sm font-medium">What happened during the call?</p>
 
           <div className="grid grid-cols-2 gap-2">
             {CALL_OUTCOMES.map(o => (
               <button
                 key={o}
                 onClick={() => handleOutcomeSelect(o)}
-                className="flex items-center gap-2 p-3 rounded-xl border border-slate-700 hover:border-primary-500 hover:bg-primary-500/5 transition-all duration-200 text-sm text-slate-300 hover:text-slate-100"
+                className="flex items-center gap-2 p-3 rounded-xl border border-kb-sand bg-kb-white hover:border-kb-strawberry hover:bg-kb-strawberry-tint transition-all duration-200 text-sm text-kb-text hover:text-kb-cocoa"
               >
                 <span>{OUTCOME_ICONS[o]}</span>
                 {o}
@@ -101,13 +101,13 @@ export const CallModal = ({ isOpen, onClose, lead, onSuccess }) => {
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="card p-3 flex items-center gap-3">
+          <div className="bg-kb-cream-deep border border-kb-sand rounded-xl p-3 flex items-center gap-3">
             <span className="text-2xl">{OUTCOME_ICONS[outcome]}</span>
             <div>
-              <p className="font-semibold text-slate-200">{outcome}</p>
-              <p className="text-xs text-slate-500">Call outcome for {lead.name}</p>
+              <p className="font-semibold text-kb-cocoa">{outcome}</p>
+              <p className="text-xs text-kb-muted">Call outcome for {lead.name}</p>
             </div>
-            <button type="button" onClick={() => setStep(1)} className="ml-auto text-xs text-primary-400 hover:text-primary-300">Change</button>
+            <button type="button" onClick={() => setStep(1)} className="ml-auto text-xs text-kb-strawberry hover:text-kb-strawberry-hover font-medium">Change</button>
           </div>
 
           <div>

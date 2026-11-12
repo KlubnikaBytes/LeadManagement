@@ -45,39 +45,43 @@ export const AssignModal = ({ isOpen, onClose, lead, onSuccess }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={isReassign ? '👤 Reassign Lead' : '👤 Primary Assign Lead'} size="sm">
       {lead && (
-        <div className="mb-3 p-3 rounded-xl bg-slate-900/70 border border-slate-800 text-xs space-y-1.5">
+        <div className="mb-3 p-3 rounded-xl bg-kb-cream-deep border border-kb-sand text-xs space-y-1.5">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-slate-500">Created By</span>
-            <span className="text-slate-200 font-medium">{lead.createdBy?.name || 'System'}</span>
+            <span className="text-kb-muted">Created By</span>
+            <span className="text-kb-cocoa font-medium">{lead.createdBy?.name || 'System'}</span>
           </div>
           <div className="flex items-center justify-between gap-2">
-            <span className="text-slate-500">Primary Assigned</span>
-            <span className="text-primary-300 font-medium">{lead.primaryAssignedTo?.name || 'Not assigned yet'}</span>
+            <span className="text-kb-muted">Primary Assigned</span>
+            <span className="text-kb-strawberry font-medium">{lead.primaryAssignedTo?.name || 'Not assigned yet'}</span>
           </div>
           <div className="flex items-center justify-between gap-2">
-            <span className="text-slate-500">Currently Assigned</span>
-            <span className="text-sky-300 font-medium">{lead.assignedTo?.name || 'Unassigned'}</span>
+            <span className="text-kb-muted">Currently Assigned</span>
+            <span className="text-kb-cocoa font-semibold">{lead.assignedTo?.name || 'Unassigned'}</span>
           </div>
         </div>
       )}
 
       <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
         {loadingUsers ? (
-          <div className="text-center py-4 text-slate-500">Loading users...</div>
+          <div className="text-center py-4 text-kb-muted">Loading users...</div>
         ) : (
           users.map(u => (
             <button
               key={u._id}
               type="button"
               onClick={() => setSelectedUser(u._id)}
-              className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all ${selectedUser === u._id ? 'border-primary-500 bg-primary-500/10' : 'border-slate-700 hover:border-slate-600'}`}
+              className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                selectedUser === u._id
+                  ? 'border-kb-strawberry bg-kb-strawberry-tint'
+                  : 'border-kb-sand bg-kb-white hover:border-kb-umber hover:bg-kb-cream'
+              }`}
             >
               <Avatar name={u.name} size="sm" />
               <div className="text-left">
-                <p className="text-sm font-medium text-slate-200">{u.name}</p>
-                <p className="text-xs text-slate-500">{u.role?.replace('_', ' ')}</p>
+                <p className="text-sm font-medium text-kb-cocoa">{u.name}</p>
+                <p className="text-xs text-kb-muted">{u.role?.replace('_', ' ')}</p>
               </div>
-              {selectedUser === u._id && <span className="ml-auto text-primary-400">✓</span>}
+              {selectedUser === u._id && <span className="ml-auto text-kb-strawberry font-bold">✓</span>}
             </button>
           ))
         )}

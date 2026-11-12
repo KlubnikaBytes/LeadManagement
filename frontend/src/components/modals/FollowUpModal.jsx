@@ -46,7 +46,11 @@ export const FollowUpModal = ({ isOpen, onClose, lead, onSuccess }) => {
                 key={t}
                 type="button"
                 onClick={() => setType(t)}
-                className={`p-2.5 rounded-xl border text-sm font-medium transition-all ${type === t ? 'border-primary-500 bg-primary-500/10 text-primary-400' : 'border-slate-700 text-slate-400 hover:border-slate-600'}`}
+                className={`p-2.5 rounded-xl border text-sm font-medium transition-all ${
+                  type === t
+                    ? 'border-kb-strawberry bg-kb-strawberry-tint text-kb-strawberry font-semibold'
+                    : 'border-kb-sand bg-kb-white text-kb-muted hover:border-kb-umber hover:text-kb-cocoa'
+                }`}
               >
                 {t}
               </button>

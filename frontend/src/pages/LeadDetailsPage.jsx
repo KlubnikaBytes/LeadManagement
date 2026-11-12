@@ -29,21 +29,21 @@ import { useSocketEvent } from '../hooks/useSocketEvent'
 const DetailItem = ({ icon: Icon, label, value, isLink, linkHref }) => {
   if (!value) return null
   return (
-    <div className="flex items-start gap-3 p-3 bg-slate-900/40 rounded-xl border border-slate-800/80">
-      {Icon && <Icon className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />}
+    <div className="flex items-start gap-3 p-3 bg-kb-cream-deep rounded-xl border border-kb-sand">
+      {Icon && <Icon className="w-4 h-4 text-kb-umber mt-0.5 flex-shrink-0" />}
       <div className="min-w-0 flex-1">
-        <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">{label}</p>
+        <p className="text-xs text-kb-muted font-medium uppercase tracking-wider">{label}</p>
         {isLink ? (
           <a
             href={linkHref || value}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-medium text-primary-400 hover:text-primary-300 hover:underline flex items-center gap-1 mt-0.5 break-all"
+            className="text-sm font-medium text-kb-strawberry hover:text-kb-strawberry-hover hover:underline flex items-center gap-1 mt-0.5 break-all"
           >
             {value} <ExternalLink className="w-3 h-3 flex-shrink-0" />
           </a>
         ) : (
-          <p className="text-sm font-medium text-slate-200 mt-0.5 break-words">{value}</p>
+          <p className="text-sm font-medium text-kb-cocoa mt-0.5 break-words">{value}</p>
         )}
       </div>
     </div>
@@ -168,51 +168,51 @@ export const LeadDetailsPage = () => {
           {/* Identity Card */}
           <div className="card p-5 space-y-4">
             <div className="flex items-start gap-3.5">
-              <div className="w-13 h-13 bg-gradient-to-br from-primary-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl flex-shrink-0 shadow-lg shadow-primary-500/10">
+              <div className="w-13 h-13 bg-kb-cocoa rounded-2xl flex items-center justify-center text-kb-coral font-bold text-xl flex-shrink-0 border border-kb-espresso shadow-sm">
                 {lead.name.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <h1 className="text-xl font-bold text-slate-100 truncate">{lead.name}</h1>
+                <h1 className="text-xl font-bold text-kb-cocoa truncate">{lead.name}</h1>
                 {lead.pocJobTitle && (
-                  <p className="text-xs font-semibold text-primary-400 mt-0.5">{lead.pocJobTitle}</p>
+                  <p className="text-xs font-semibold text-kb-strawberry mt-0.5">{lead.pocJobTitle}</p>
                 )}
-                <p className="text-sm text-slate-400 flex items-center gap-1.5 mt-1 truncate">
-                  <Building2 className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
-                  <span className="font-medium text-slate-300">{lead.companyName || 'No Company Name'}</span>
+                <p className="text-sm text-kb-muted flex items-center gap-1.5 mt-1 truncate">
+                  <Building2 className="w-3.5 h-3.5 text-kb-umber flex-shrink-0" />
+                  <span className="font-medium text-kb-text">{lead.companyName || 'No Company Name'}</span>
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-800">
+            <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-kb-sand">
               {canViewSales ? (
                 <>
                   <StatusBadge status={lead.status} size="lg" />
                   <PriorityBadge priority={lead.priority} />
                 </>
               ) : (
-                <span className="inline-flex items-center gap-1.5 text-xs bg-amber-500/10 text-amber-300 font-medium px-2.5 py-1 rounded-full border border-amber-500/25">
+                <span className="inline-flex items-center gap-1.5 text-xs bg-kb-amber-bg text-kb-amber-fg font-medium px-2.5 py-1 rounded-full border border-kb-amber-border">
                   <Lock className="w-3 h-3" /> Client Info Only
                 </span>
               )}
               {(lead.businessCategory || lead.businessType) && (
-                <span className="text-xs bg-slate-800 text-slate-300 font-medium px-2.5 py-1 rounded-full border border-slate-700">
+                <span className="text-xs bg-kb-cream-deep text-kb-cocoa font-medium px-2.5 py-1 rounded-full border border-kb-sand">
                   {lead.businessCategory || lead.businessType}
                 </span>
               )}
             </div>
 
             {/* Quick Contact Buttons */}
-            <div className="space-y-2 pt-2 border-t border-slate-800">
+            <div className="space-y-2 pt-2 border-t border-kb-sand">
               <a
                 href={`tel:${lead.phone}`}
-                className="flex items-center gap-3 p-2.5 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 rounded-xl transition-colors group"
+                className="flex items-center gap-3 p-2.5 bg-kb-cream-deep hover:bg-kb-cream border border-kb-sand rounded-xl transition-colors group"
               >
-                <div className="w-8 h-8 bg-emerald-500/15 rounded-lg flex items-center justify-center">
-                  <Phone className="w-4 h-4 text-emerald-400" />
+                <div className="w-8 h-8 bg-kb-teal-bg border border-kb-teal-border rounded-lg flex items-center justify-center">
+                  <Phone className="w-4 h-4 text-kb-teal-fg" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs text-slate-500">Primary Phone (POC)</p>
-                  <p className="text-sm font-mono font-semibold text-slate-200 group-hover:text-emerald-400 transition-colors truncate">
+                  <p className="text-xs text-kb-muted">Primary Phone (POC)</p>
+                  <p className="text-sm font-mono font-semibold text-kb-cocoa group-hover:text-kb-strawberry transition-colors truncate">
                     {lead.phone}
                   </p>
                 </div>
@@ -221,14 +221,14 @@ export const LeadDetailsPage = () => {
               {lead.alternatePhone && (
                 <a
                   href={`tel:${lead.alternatePhone}`}
-                  className="flex items-center gap-3 p-2.5 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 rounded-xl transition-colors"
+                  className="flex items-center gap-3 p-2.5 bg-kb-cream-deep hover:bg-kb-cream border border-kb-sand rounded-xl transition-colors"
                 >
-                  <div className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center">
-                    <Phone className="w-4 h-4 text-slate-400" />
+                  <div className="w-8 h-8 bg-kb-white border border-kb-sand rounded-lg flex items-center justify-center">
+                    <Phone className="w-4 h-4 text-kb-umber" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs text-slate-500">Alt Phone / WhatsApp</p>
-                    <p className="text-sm font-mono text-slate-200 truncate">{lead.alternatePhone}</p>
+                    <p className="text-xs text-kb-muted">Alt Phone / WhatsApp</p>
+                    <p className="text-sm font-mono text-kb-cocoa truncate">{lead.alternatePhone}</p>
                   </div>
                 </a>
               )}
@@ -236,14 +236,14 @@ export const LeadDetailsPage = () => {
               {lead.email && (
                 <a
                   href={`mailto:${lead.email}`}
-                  className="flex items-center gap-3 p-2.5 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 rounded-xl transition-colors group"
+                  className="flex items-center gap-3 p-2.5 bg-kb-cream-deep hover:bg-kb-cream border border-kb-sand rounded-xl transition-colors group"
                 >
-                  <div className="w-8 h-8 bg-blue-500/15 rounded-lg flex items-center justify-center">
-                    <Mail className="w-4 h-4 text-blue-400" />
+                  <div className="w-8 h-8 bg-kb-umber-bg border border-kb-umber-border rounded-lg flex items-center justify-center">
+                    <Mail className="w-4 h-4 text-kb-umber-fg" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs text-slate-500">Email Address</p>
-                    <p className="text-sm text-slate-200 group-hover:text-blue-400 transition-colors truncate">
+                    <p className="text-xs text-kb-muted">Email Address</p>
+                    <p className="text-sm text-kb-cocoa group-hover:text-kb-strawberry transition-colors truncate">
                       {lead.email}
                     </p>
                   </div>
@@ -255,14 +255,14 @@ export const LeadDetailsPage = () => {
                   href={lead.pocLinkedIn.startsWith('http') ? lead.pocLinkedIn : `https://${lead.pocLinkedIn}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-2.5 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 rounded-xl transition-colors group"
+                  className="flex items-center gap-3 p-2.5 bg-kb-cream-deep hover:bg-kb-cream border border-kb-sand rounded-xl transition-colors group"
                 >
-                  <div className="w-8 h-8 bg-sky-500/15 rounded-lg flex items-center justify-center">
-                    <LinkedinIcon className="w-4 h-4 text-sky-400" />
+                  <div className="w-8 h-8 bg-kb-white border border-kb-sand rounded-lg flex items-center justify-center">
+                    <LinkedinIcon className="w-4 h-4 text-kb-cocoa" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs text-slate-500">POC LinkedIn</p>
-                    <p className="text-sm text-sky-400 group-hover:underline flex items-center gap-1 truncate">
+                    <p className="text-xs text-kb-muted">POC LinkedIn</p>
+                    <p className="text-sm text-kb-strawberry group-hover:underline flex items-center gap-1 truncate font-medium">
                       View LinkedIn Profile <ExternalLink className="w-3 h-3 flex-shrink-0" />
                     </p>
                   </div>
@@ -274,14 +274,14 @@ export const LeadDetailsPage = () => {
                   href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-2.5 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 rounded-xl transition-colors group"
+                  className="flex items-center gap-3 p-2.5 bg-kb-cream-deep hover:bg-kb-cream border border-kb-sand rounded-xl transition-colors group"
                 >
-                  <div className="w-8 h-8 bg-purple-500/15 rounded-lg flex items-center justify-center">
-                    <Globe className="w-4 h-4 text-purple-400" />
+                  <div className="w-8 h-8 bg-kb-white border border-kb-sand rounded-lg flex items-center justify-center">
+                    <Globe className="w-4 h-4 text-kb-umber" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs text-slate-500">Company Website</p>
-                    <p className="text-sm text-slate-200 group-hover:text-purple-400 transition-colors truncate">
+                    <p className="text-xs text-kb-muted">Company Website</p>
+                    <p className="text-sm text-kb-strawberry group-hover:underline transition-colors truncate font-medium">
                       {lead.website}
                     </p>
                   </div>
@@ -292,28 +292,28 @@ export const LeadDetailsPage = () => {
 
           {/* Ownership Snapshot (Creation / Primary Assign / Current Reassign) */}
           <div className="card p-4 space-y-2.5 text-xs">
-            <div className="flex items-center gap-2 pb-2 border-b border-slate-800">
-              <UserCheck className="w-4 h-4 text-primary-400" />
-              <h3 className="font-semibold text-sm text-slate-200">Lead Ownership</h3>
+            <div className="flex items-center gap-2 pb-2 border-b border-kb-sand">
+              <UserCheck className="w-4 h-4 text-kb-strawberry" />
+              <h3 className="font-semibold text-sm text-kb-cocoa">Lead Ownership</h3>
             </div>
             <div className="flex items-center justify-between gap-2">
-              <span className="text-slate-500">Created By</span>
-              <span className="text-slate-200 font-medium">{lead.createdBy?.name || 'System'}</span>
+              <span className="text-kb-muted">Created By</span>
+              <span className="text-kb-cocoa font-medium">{lead.createdBy?.name || 'System'}</span>
             </div>
             <div className="flex items-center justify-between gap-2">
-              <span className="text-slate-500">Primary Assigned</span>
-              <span className="text-primary-300 font-medium">
+              <span className="text-kb-muted">Primary Assigned</span>
+              <span className="text-kb-strawberry font-medium">
                 {lead.primaryAssignedTo?.name || 'Not assigned yet'}
               </span>
             </div>
             <div className="flex items-center justify-between gap-2">
-              <span className="text-slate-500">Current Assigned</span>
-              <span className="text-sky-300 font-medium">{lead.assignedTo?.name || 'Unassigned'}</span>
+              <span className="text-kb-muted">Current Assigned</span>
+              <span className="text-kb-cocoa font-semibold">{lead.assignedTo?.name || 'Unassigned'}</span>
             </div>
             {lead.reassignedBy && (
               <div className="flex items-center justify-between gap-2">
-                <span className="text-slate-500">Reassigned By</span>
-                <span className="text-amber-300 font-medium">{lead.reassignedBy.name}</span>
+                <span className="text-kb-muted">Reassigned By</span>
+                <span className="text-kb-amber-fg font-medium">{lead.reassignedBy.name}</span>
               </div>
             )}
           </div>
@@ -346,29 +346,29 @@ export const LeadDetailsPage = () => {
             <div
               className={`card p-4 border ${
                 nextFollowUpOverdue
-                  ? 'border-red-500/40 bg-red-500/5'
+                  ? 'border-kb-lost-border bg-kb-lost-bg'
                   : nextFollowUpToday
-                  ? 'border-amber-500/40 bg-amber-500/5'
-                  : 'border-slate-800'
+                  ? 'border-kb-amber-border bg-kb-amber-bg'
+                  : 'border-kb-sand'
               }`}
             >
               <div className="flex items-center gap-2 mb-1.5">
                 <Calendar
                   className={`w-4 h-4 ${
-                    nextFollowUpOverdue ? 'text-red-400' : nextFollowUpToday ? 'text-amber-400' : 'text-slate-400'
+                    nextFollowUpOverdue ? 'text-kb-crimson' : nextFollowUpToday ? 'text-kb-amber-fg' : 'text-kb-umber'
                   }`}
                 />
-                <h3 className="font-semibold text-sm text-slate-300">Next Follow-up</h3>
+                <h3 className="font-semibold text-sm text-kb-cocoa">Next Follow-up</h3>
               </div>
               <p
                 className={`text-base font-bold ${
-                  nextFollowUpOverdue ? 'text-red-400' : nextFollowUpToday ? 'text-amber-400' : 'text-slate-200'
+                  nextFollowUpOverdue ? 'text-kb-crimson' : nextFollowUpToday ? 'text-kb-amber-fg' : 'text-kb-cocoa'
                 }`}
               >
                 {nextFollowUpOverdue ? '⚠ Overdue — ' : nextFollowUpToday ? '📅 Today — ' : ''}
                 {formatDateTime(lead.nextFollowUpAt)}
               </p>
-              <p className="text-xs text-slate-500 mt-1">{formatRelative(lead.nextFollowUpAt)}</p>
+              <p className="text-xs text-kb-muted mt-1">{formatRelative(lead.nextFollowUpAt)}</p>
             </div>
           )}
 
@@ -376,25 +376,25 @@ export const LeadDetailsPage = () => {
           <div className="card p-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {canViewSales && (
               <>
-                <div className="bg-slate-900/50 rounded-xl p-2.5 border border-slate-800/60">
-                  <p className="text-slate-500 text-xs">📞 Total Calls</p>
-                  <p className="text-sm font-bold text-slate-200 mt-0.5">{lead.totalCalls}</p>
+                <div className="bg-kb-cream-deep rounded-xl p-2.5 border border-kb-sand">
+                  <p className="text-kb-muted text-xs">📞 Total Calls</p>
+                  <p className="text-sm font-bold text-kb-cocoa mt-0.5">{lead.totalCalls}</p>
                 </div>
-                <div className="bg-slate-900/50 rounded-xl p-2.5 border border-slate-800/60">
-                  <p className="text-slate-500 text-xs">🕒 Last Contact</p>
-                  <p className="text-sm font-semibold text-slate-200 mt-0.5">
+                <div className="bg-kb-cream-deep rounded-xl p-2.5 border border-kb-sand">
+                  <p className="text-kb-muted text-xs">🕒 Last Contact</p>
+                  <p className="text-sm font-semibold text-kb-cocoa mt-0.5">
                     {lead.lastContactedAt ? formatRelative(lead.lastContactedAt) : 'Never'}
                   </p>
                 </div>
               </>
             )}
-            <div className="bg-slate-900/50 rounded-xl p-2.5 border border-slate-800/60">
-              <p className="text-slate-500 text-xs">🗓️ Created</p>
-              <p className="text-sm font-semibold text-slate-200 mt-0.5">{formatDate(lead.createdAt)}</p>
+            <div className="bg-kb-cream-deep rounded-xl p-2.5 border border-kb-sand">
+              <p className="text-kb-muted text-xs">🗓️ Created</p>
+              <p className="text-sm font-semibold text-kb-cocoa mt-0.5">{formatDate(lead.createdAt)}</p>
             </div>
-            <div className="bg-slate-900/50 rounded-xl p-2.5 border border-slate-800/60">
-              <p className="text-slate-500 text-xs">✏️ Updated</p>
-              <p className="text-sm font-semibold text-slate-200 mt-0.5">{formatRelative(lead.updatedAt)}</p>
+            <div className="bg-kb-cream-deep rounded-xl p-2.5 border border-kb-sand">
+              <p className="text-kb-muted text-xs">✏️ Updated</p>
+              <p className="text-sm font-semibold text-kb-cocoa mt-0.5">{formatRelative(lead.updatedAt)}</p>
             </div>
           </div>
         </div>
@@ -406,7 +406,7 @@ export const LeadDetailsPage = () => {
           
           {/* Navigation Tabs */}
           <div className="card">
-            <div className="flex border-b border-slate-800 overflow-x-auto">
+            <div className="flex border-b border-kb-sand overflow-x-auto">
               {(canViewSales
                 ? [
                     { key: 'overview', label: 'Lead Overview' },
@@ -420,13 +420,13 @@ export const LeadDetailsPage = () => {
                   onClick={() => setActiveTab(tab.key)}
                   className={`px-5 py-3.5 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap flex items-center gap-2 ${
                     activeTab === tab.key
-                      ? 'border-primary-500 text-primary-400 bg-slate-900/30'
-                      : 'border-transparent text-slate-400 hover:text-slate-200'
+                      ? 'border-kb-strawberry text-kb-strawberry bg-kb-cream'
+                      : 'border-transparent text-kb-muted hover:text-kb-cocoa'
                   }`}
                 >
                   {tab.label}
                   {tab.count !== undefined && (
-                    <span className="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-bold">
+                    <span className="text-xs bg-kb-cream-deep text-kb-cocoa px-2 py-0.5 rounded-full font-bold border border-kb-sand">
                       {tab.count}
                     </span>
                   )}
@@ -442,9 +442,9 @@ export const LeadDetailsPage = () => {
                   
                   {/* SECTION 1: PROSPECTIVE BUSINESS INFORMATION */}
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2 pb-2 border-b border-slate-800">
-                      <Building2 className="w-4 h-4 text-primary-400" />
-                      <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider">
+                    <div className="flex items-center gap-2 pb-2 border-b border-kb-sand">
+                      <Building2 className="w-4 h-4 text-kb-strawberry" />
+                      <h3 className="text-sm font-bold text-kb-cocoa uppercase tracking-wider">
                         1. Prospective Business Information
                       </h3>
                     </div>
@@ -475,11 +475,11 @@ export const LeadDetailsPage = () => {
                     )}
 
                     {lead.businessDescription && (
-                      <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-800">
-                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                      <div className="p-4 bg-kb-cream-deep rounded-xl border border-kb-sand">
+                        <p className="text-xs font-semibold text-kb-muted uppercase tracking-wider mb-1">
                           About the Business
                         </p>
-                        <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">
+                        <p className="text-sm text-kb-text leading-relaxed whitespace-pre-wrap">
                           {lead.businessDescription}
                         </p>
                       </div>
@@ -488,9 +488,9 @@ export const LeadDetailsPage = () => {
 
                   {/* SECTION 2: POINT OF CONTACT (POC) DETAILS */}
                   <div className="space-y-3 pt-2">
-                    <div className="flex items-center gap-2 pb-2 border-b border-slate-800">
-                      <User className="w-4 h-4 text-primary-400" />
-                      <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider">
+                    <div className="flex items-center gap-2 pb-2 border-b border-kb-sand">
+                      <User className="w-4 h-4 text-kb-strawberry" />
+                      <h3 className="text-sm font-bold text-kb-cocoa uppercase tracking-wider">
                         2. Point of Contact (POC) Details
                       </h3>
                     </div>
@@ -512,32 +512,34 @@ export const LeadDetailsPage = () => {
 
                     {/* Notes About Talk with POC */}
                     {lead.pocTalkNotes ? (
-                      <div className="p-4 bg-primary-500/5 rounded-xl border border-primary-500/20">
+                      <div className="p-4 bg-kb-strawberry-tint rounded-xl border border-kb-lost-border">
                         <div className="flex items-center gap-2 mb-2">
-                          <MessageSquare className="w-4 h-4 text-primary-400" />
-                          <p className="text-xs font-bold text-primary-300 uppercase tracking-wider">
+                          <MessageSquare className="w-4 h-4 text-kb-strawberry" />
+                          <p className="text-xs font-bold text-kb-crimson uppercase tracking-wider">
                             Notes About Talk / Conversation with POC
                           </p>
                         </div>
-                        <p className="text-sm text-slate-200 leading-relaxed whitespace-pre-wrap">
+                        <p className="text-sm text-kb-cocoa leading-relaxed whitespace-pre-wrap">
                           {lead.pocTalkNotes}
                         </p>
                       </div>
                     ) : (
-                      <div className="p-4 bg-slate-900/40 rounded-xl border border-dashed border-slate-800 text-center">
-                        <p className="text-xs text-slate-500">No specific conversation notes recorded with POC yet.</p>
-                        <Link to={`/leads/${id}/edit`} className="text-xs text-primary-400 hover:underline mt-1 inline-block">
-                          + Add conversation notes
-                        </Link>
+                      <div className="p-4 bg-kb-cream rounded-xl border border-dashed border-kb-sand text-center">
+                        <p className="text-xs text-kb-muted">No specific conversation notes recorded with POC yet.</p>
+                        {canViewSales && (
+                          <Link to={`/leads/${id}/edit`} className="text-xs text-kb-strawberry hover:underline mt-1 inline-block font-medium">
+                            + Add conversation notes
+                          </Link>
+                        )}
                       </div>
                     )}
                   </div>
 
                   {/* SECTION 3: TYPE OF REACH */}
                   <div className="space-y-3 pt-2">
-                    <div className="flex items-center gap-2 pb-2 border-b border-slate-800">
-                      <Send className="w-4 h-4 text-primary-400" />
-                      <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider">
+                    <div className="flex items-center gap-2 pb-2 border-b border-kb-sand">
+                      <Send className="w-4 h-4 text-kb-strawberry" />
+                      <h3 className="text-sm font-bold text-kb-cocoa uppercase tracking-wider">
                         3. Type of Reach
                       </h3>
                     </div>
@@ -560,10 +562,10 @@ export const LeadDetailsPage = () => {
                   {canViewSales ? (
                     <>
                       <div className="space-y-3 pt-2">
-                        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-800">
+                        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-kb-sand">
                           <div className="flex items-center gap-2">
-                            <Briefcase className="w-4 h-4 text-primary-400" />
-                            <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider">
+                            <Briefcase className="w-4 h-4 text-kb-strawberry" />
+                            <h3 className="text-sm font-bold text-kb-cocoa uppercase tracking-wider">
                               4. Sales & Engagement Details
                             </h3>
                           </div>
@@ -571,7 +573,7 @@ export const LeadDetailsPage = () => {
                             <button
                               type="button"
                               onClick={() => setModal('assign')}
-                              className="text-xs text-primary-400 hover:text-primary-300 font-medium"
+                              className="text-xs text-kb-strawberry hover:text-kb-strawberry-hover font-semibold"
                             >
                               {lead.primaryAssignedTo ? 'Reassign Lead →' : 'Primary Assign →'}
                             </button>
@@ -610,18 +612,18 @@ export const LeadDetailsPage = () => {
                         </div>
 
                         {lead.assignmentHistory?.length > 0 && (
-                          <div className="p-3.5 bg-slate-900/40 rounded-xl border border-slate-800/80 space-y-2">
-                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                          <div className="p-3.5 bg-kb-cream-deep rounded-xl border border-kb-sand space-y-2">
+                            <p className="text-xs font-semibold text-kb-muted uppercase tracking-wider">
                               Assignment Trail (Creation → Primary → Reassign)
                             </p>
                             <div className="space-y-1.5">
                               {lead.assignmentHistory.map((item, idx) => (
-                                <div key={idx} className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-300">
+                                <div key={idx} className="flex flex-wrap items-center justify-between gap-2 text-xs text-kb-text">
                                   <span>
                                     <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold mr-1.5 ${
                                       item.type === 'PRIMARY'
-                                        ? 'bg-primary-500/15 text-primary-300 border border-primary-500/25'
-                                        : 'bg-amber-500/15 text-amber-300 border border-amber-500/25'
+                                        ? 'bg-kb-strawberry-tint text-kb-crimson border border-kb-lost-border'
+                                        : 'bg-kb-amber-bg text-kb-amber-fg border border-kb-amber-border'
                                     }`}>
                                       {item.type}
                                     </span>
@@ -629,7 +631,7 @@ export const LeadDetailsPage = () => {
                                     {item.assignedBy?.name ? ` (by ${item.assignedBy.name})` : ''}
                                     {item.note ? ` — "${item.note}"` : ''}
                                   </span>
-                                  <span className="text-slate-500">{formatDateTime(item.assignedAt)}</span>
+                                  <span className="text-kb-muted">{formatDateTime(item.assignedAt)}</span>
                                 </div>
                               ))}
                             </div>
@@ -637,33 +639,33 @@ export const LeadDetailsPage = () => {
                         )}
 
                         {lead.notes && (
-                          <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-800">
-                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                          <div className="p-4 bg-kb-cream-deep rounded-xl border border-kb-sand">
+                            <p className="text-xs font-semibold text-kb-muted uppercase tracking-wider mb-1">
                               General / Internal Notes
                             </p>
-                            <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{lead.notes}</p>
+                            <p className="text-sm text-kb-text leading-relaxed whitespace-pre-wrap">{lead.notes}</p>
                           </div>
                         )}
                       </div>
 
                       {/* Conversion Details (if converted) */}
                       {lead.status === 'CONVERTED' && lead.convertedAt && (
-                        <div className="p-4 border border-green-500/30 bg-green-500/10 rounded-xl">
-                          <p className="text-green-400 font-bold text-sm mb-1">🎉 Lead Converted</p>
-                          <p className="text-xs text-slate-300">Converted on {formatDate(lead.convertedAt)}</p>
-                          {lead.finalService && <p className="text-xs text-slate-300 mt-1">Service: {lead.finalService}</p>}
-                          {lead.finalBudget && <p className="text-xs text-slate-300 mt-1">Budget: {lead.finalBudget}</p>}
-                          {lead.conversionNotes && <p className="text-xs text-slate-400 mt-1.5 italic">"{lead.conversionNotes}"</p>}
+                        <div className="p-4 border border-kb-won-border bg-kb-won-bg rounded-xl">
+                          <p className="text-kb-won-fg font-bold text-sm mb-1">🎉 Lead Converted</p>
+                          <p className="text-xs text-kb-cocoa">Converted on {formatDate(lead.convertedAt)}</p>
+                          {lead.finalService && <p className="text-xs text-kb-cocoa mt-1">Service: {lead.finalService}</p>}
+                          {lead.finalBudget && <p className="text-xs text-kb-cocoa mt-1">Budget: {lead.finalBudget}</p>}
+                          {lead.conversionNotes && <p className="text-xs text-kb-muted mt-1.5 italic">"{lead.conversionNotes}"</p>}
                         </div>
                       )}
                     </>
                   ) : (
-                    <div className="p-5 rounded-xl border border-amber-500/25 bg-amber-500/5 space-y-2 mt-2">
-                      <div className="flex items-center gap-2 text-amber-300 font-semibold text-sm">
+                    <div className="p-5 rounded-xl border border-kb-amber-border bg-kb-amber-bg space-y-2 mt-2">
+                      <div className="flex items-center gap-2 text-kb-amber-fg font-semibold text-sm">
                         <Lock className="w-4 h-4" />
                         <span>4. Sales &amp; Engagement Details (Restricted)</span>
                       </div>
-                      <p className="text-xs text-slate-400 leading-relaxed">
+                      <p className="text-xs text-kb-text leading-relaxed">
                         Client &amp; Lead Info (Sections 1–3) is shared across the sales team. Sales pipeline, budget,
                         follow-ups, call logs, and internal notes are visible only to the assigned Sales Executive
                         {lead.assignedTo?.name ? ` (${lead.assignedTo.name})` : ''} and Managers/Admins.
@@ -688,20 +690,20 @@ export const LeadDetailsPage = () => {
                   </div>
                   {notes.length === 0 ? (
                     <div className="text-center py-12">
-                      <p className="text-slate-500 text-sm">No notes recorded yet</p>
+                      <p className="text-kb-muted text-sm">No notes recorded yet</p>
                       <button onClick={() => setModal('note')} className="btn-secondary text-sm mt-3">
                         Add First Note
                       </button>
                     </div>
                   ) : (
                     notes.map(note => (
-                      <div key={note._id} className="p-4 bg-slate-900/60 rounded-xl border border-slate-800">
-                        <p className="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap">{note.text}</p>
-                        <div className="flex items-center gap-2 mt-3 pt-2 border-t border-slate-800/60">
+                      <div key={note._id} className="p-4 bg-kb-cream-deep rounded-xl border border-kb-sand">
+                        <p className="text-kb-cocoa text-sm leading-relaxed whitespace-pre-wrap">{note.text}</p>
+                        <div className="flex items-center gap-2 mt-3 pt-2 border-t border-kb-sand">
                           <Avatar name={note.createdBy?.name} size="xs" />
-                          <span className="text-xs text-slate-400 font-medium">{note.createdBy?.name}</span>
-                          <span className="text-xs text-slate-600">•</span>
-                          <span className="text-xs text-slate-500">{formatDateTime(note.createdAt)}</span>
+                          <span className="text-xs text-kb-text font-medium">{note.createdBy?.name}</span>
+                          <span className="text-xs text-kb-taupe">•</span>
+                          <span className="text-xs text-kb-muted">{formatDateTime(note.createdAt)}</span>
                         </div>
                       </div>
                     ))

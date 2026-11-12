@@ -86,7 +86,7 @@ export const LeadFilters = ({ filters, onChange, salesUsers = [] }) => {
         </>
       )}
       {hasFilters && (
-        <button onClick={clearAll} className="btn-ghost text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 justify-center sm:justify-start">
+        <button onClick={clearAll} className="btn-ghost text-sm text-kb-crimson hover:text-kb-crimson-hover hover:bg-kb-lost-bg justify-center sm:justify-start">
           <X className="w-4 h-4" />
           Clear Filters
         </button>
