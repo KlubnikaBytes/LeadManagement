@@ -1,8 +1,11 @@
 import axios from 'axios'
 import toast from 'react-hot-toast'
 
+const rawApiUrl = import.meta.env.VITE_API_URL?.trim()
+const baseURL = rawApiUrl ? rawApiUrl.replace(/\/+$/, '') : '/api'
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL,
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' },
   withCredentials: true,

@@ -23,12 +23,27 @@ const analyticsRoutes = require('./routes/analytics.routes');
 const notificationRoutes = require('./routes/notification.routes');
 
 const app = express();
+app.set('trust proxy', 1);
 const server = http.createServer(app);
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin.replace(/\/+$/, ''))) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
+  credentials: true,
+};
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    ...corsOptions,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    credentials: true
   }
 });
 app.set('io', io);
@@ -47,10 +62,7 @@ connectDB();
 app.use(helmet());
 
 // CORS
-app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
-  credentials: true,
-}));
+app.use(cors(corsOptions));
 
 // Rate limiting for auth routes
 const authLimiter = rateLimit({
