@@ -1,5 +1,6 @@
 const leadService = require('../services/lead.service');
 const Note = require('../models/Note.model');
+const DropdownOption = require('../models/DropdownOption.model');
 const { createActivity } = require('../utils/helpers');
 const XLSX = require('xlsx');
 const csv = require('csv-parser');
@@ -17,26 +18,76 @@ const getLeads = async (req, res, next) => {
 
 const getOptions = async (req, res, next) => {
   try {
-    const Lead = require('../models/Lead.model');
-    const [sources, businessTypes, businessCategories, services, statuses, reachTypes] = await Promise.all([
-      Lead.distinct('source'),
-      Lead.distinct('businessType'),
-      Lead.distinct('businessCategory'),
-      Lead.distinct('interestedIn'),
-      Lead.distinct('status'),
-      Lead.distinct('typeOfReach'),
-    ]);
+    const savedOptions = await DropdownOption.find({}).sort({ value: 1 }).lean();
+
+    const grouped = {
+      sources: [],
+      businessTypes: [],
+      businessCategories: [],
+      businessSubCategories: [],
+      subCategoriesByCategory: {},
+      services: [],
+      statuses: [],
+      reachTypes: [],
+    };
+
+    for (const opt of savedOptions) {
+      if (opt.field === 'businessCategory') {
+        grouped.businessCategories.push(opt.value);
+      } else if (opt.field === 'businessSubCategory') {
+        grouped.businessSubCategories.push(opt.value);
+        if (opt.parentCategory) {
+          if (!grouped.subCategoriesByCategory[opt.parentCategory]) {
+            grouped.subCategoriesByCategory[opt.parentCategory] = [];
+          }
+          grouped.subCategoriesByCategory[opt.parentCategory].push(opt.value);
+        }
+      } else if (opt.field === 'typeOfReach') {
+        grouped.reachTypes.push(opt.value);
+        grouped.sources.push(opt.value);
+      } else if (opt.field === 'interestedIn') {
+        grouped.services.push(opt.value);
+      } else if (opt.field === 'status') {
+        grouped.statuses.push(opt.value);
+      }
+    }
+
     res.json({
       success: true,
-      data: {
-        sources,
-        businessTypes,
-        businessCategories,
-        services,
-        statuses,
-        reachTypes,
-      }
+      data: grouped,
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const addOption = async (req, res, next) => {
+  try {
+    const { field, value, parentCategory = '' } = req.body;
+    const allowedFields = ['businessCategory', 'businessSubCategory', 'typeOfReach', 'interestedIn', 'status'];
+    if (!allowedFields.includes(field)) {
+      return res.status(400).json({ success: false, message: 'Invalid dropdown field' });
+    }
+    const trimmed = String(value || '').trim();
+    if (!trimmed) {
+      return res.status(400).json({ success: false, message: 'Option value is required' });
+    }
+
+    const option = await DropdownOption.findOneAndUpdate(
+      { field, value: trimmed, parentCategory: String(parentCategory || '').trim() },
+      {
+        $setOnInsert: {
+          field,
+          value: trimmed,
+          parentCategory: String(parentCategory || '').trim(),
+          createdBy: req.user._id,
+        },
+      },
+      { upsert: true, new: true }
+    );
+
+    req.app.get('io')?.emit('options_updated');
+    res.status(201).json({ success: true, data: option });
   } catch (err) {
     next(err);
   }
@@ -85,7 +136,7 @@ const changeStatus = async (req, res, next) => {
   try {
     const { status, ...extra } = req.body;
     if (!status) return res.status(400).json({ success: false, message: 'Status is required' });
-    const lead = await leadService.changeLeadStatus(req.params.id, status, req.user._id, extra);
+    const lead = await leadService.changeLeadStatus(req.params.id, status, req.user, extra);
     req.app.get('io')?.emit('lead_updated');
     res.json({ success: true, data: lead });
   } catch (err) {
@@ -95,9 +146,9 @@ const changeStatus = async (req, res, next) => {
 
 const assignLead = async (req, res, next) => {
   try {
-    const { assignedTo } = req.body;
+    const { assignedTo, note } = req.body;
     if (!assignedTo) return res.status(400).json({ success: false, message: 'assignedTo is required' });
-    const lead = await leadService.assignLead(req.params.id, assignedTo, req.user._id);
+    const lead = await leadService.assignLead(req.params.id, assignedTo, req.user._id, note);
     req.app.get('io')?.emit('lead_updated');
     res.json({ success: true, data: lead });
   } catch (err) {
@@ -179,6 +230,7 @@ const EXPORT_HEADERS = [
   'Status',
   'Priority',
   'Added By',
+  'Primary Assigned To',
   'Assigned To',
   'Interested In',
   'Estimated Budget',
@@ -199,41 +251,45 @@ const exportLeads = async (req, res, next) => {
     const result = await leadService.getLeads({ ...req.query, page: 1, limit: 50000, _export: true }, req.user);
     const leads = result.data;
 
-    const data = leads.map(l => ({
-      'Company Name': l.companyName || '',
-      'Business Category': l.businessCategory || l.businessType || '',
-      'Sub Category': l.businessSubCategory || '',
-      Website: l.website || '',
-      Address: l.address || '',
-      City: l.city || '',
-      State: l.state || '',
-      Country: l.country || '',
-      Pincode: l.pincode || '',
-      'Business Description': l.businessDescription || '',
-      'POC Name': l.name || '',
-      'POC Job Title': l.pocJobTitle || '',
-      'POC Phone': l.phone || '',
-      'POC Alt Phone': l.alternatePhone || '',
-      'POC Email': l.email || '',
-      'POC LinkedIn': l.pocLinkedIn || '',
-      'POC Talk Notes': l.pocTalkNotes || '',
-      'Type of Reach': l.typeOfReach || l.source || '',
-      'Reach Notes': l.reachNotes || '',
-      Status: l.status || '',
-      Priority: l.priority || '',
-      'Added By': l.createdBy?.name || '',
-      'Assigned To': l.assignedTo?.name || '',
-      'Interested In': l.interestedIn || '',
-      'Estimated Budget': l.estimatedBudget || '',
-      'Total Calls': l.totalCalls ?? 0,
-      'General Notes': l.notes || '',
-      'Last Contacted': formatExportDate(l.lastContactedAt),
-      'Next Follow-up': formatExportDate(l.nextFollowUpAt),
-      'Final Service': l.finalService || '',
-      'Final Budget': l.finalBudget || '',
-      'Converted At': formatExportDate(l.convertedAt),
-      'Created At': formatExportDate(l.createdAt),
-    }));
+    const data = leads.map((l) => {
+      const canViewSales = l.canViewSalesSection !== false;
+      return {
+        'Company Name': l.companyName || '',
+        'Business Category': l.businessCategory || l.businessType || '',
+        'Sub Category': l.businessSubCategory || '',
+        Website: l.website || '',
+        Address: l.address || '',
+        City: l.city || '',
+        State: l.state || '',
+        Country: l.country || '',
+        Pincode: l.pincode || '',
+        'Business Description': l.businessDescription || '',
+        'POC Name': l.name || '',
+        'POC Job Title': l.pocJobTitle || '',
+        'POC Phone': l.phone || '',
+        'POC Alt Phone': l.alternatePhone || '',
+        'POC Email': l.email || '',
+        'POC LinkedIn': l.pocLinkedIn || '',
+        'POC Talk Notes': l.pocTalkNotes || '',
+        'Type of Reach': l.typeOfReach || l.source || '',
+        'Reach Notes': l.reachNotes || '',
+        Status: canViewSales ? (l.status || '') : 'Restricted',
+        Priority: canViewSales ? (l.priority || '') : '',
+        'Added By': l.createdBy?.name || '',
+        'Primary Assigned To': l.primaryAssignedTo?.name || '',
+        'Assigned To': l.assignedTo?.name || '',
+        'Interested In': canViewSales ? (l.interestedIn || '') : '',
+        'Estimated Budget': canViewSales ? (l.estimatedBudget || '') : '',
+        'Total Calls': canViewSales ? (l.totalCalls ?? 0) : '',
+        'General Notes': canViewSales ? (l.notes || '') : '',
+        'Last Contacted': canViewSales ? formatExportDate(l.lastContactedAt) : '',
+        'Next Follow-up': canViewSales ? formatExportDate(l.nextFollowUpAt) : '',
+        'Final Service': canViewSales ? (l.finalService || '') : '',
+        'Final Budget': canViewSales ? (l.finalBudget || '') : '',
+        'Converted At': canViewSales ? formatExportDate(l.convertedAt) : '',
+        'Created At': formatExportDate(l.createdAt),
+      };
+    });
 
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(data, { header: EXPORT_HEADERS });
@@ -256,4 +312,4 @@ const exportLeads = async (req, res, next) => {
   }
 };
 
-module.exports = { getLeads, getOptions, getLead, createLead, updateLead, deleteLead, changeStatus, assignLead, checkDuplicate, importLeads, exportLeads };
+module.exports = { getLeads, getOptions, addOption, getLead, createLead, updateLead, deleteLead, changeStatus, assignLead, checkDuplicate, importLeads, exportLeads };

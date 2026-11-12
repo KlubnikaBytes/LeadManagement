@@ -40,42 +40,70 @@ const FormGroup = ({ label, required, error, hint, children }) => (
   </div>
 )
 
-const CustomSelect = ({ options = [], value, onChange, placeholder }) => {
+const CustomSelect = ({
+  options = [],
+  value,
+  onChange,
+  placeholder,
+  canAddCustom = false,
+  onAddCustom,
+  allowOther = true,
+  otherLabel = 'Other',
+  otherPlaceholder,
+}) => {
   const [isAdding, setIsAdding] = useState(false)
   const [customVal, setCustomVal] = useState('')
+  const [savingCustom, setSavingCustom] = useState(false)
 
-  if (isAdding) {
+  const handleSaveCustom = async () => {
+    const trimmed = customVal.trim()
+    if (!trimmed) {
+      setIsAdding(false)
+      return
+    }
+    if (onAddCustom) {
+      setSavingCustom(true)
+      try {
+        await onAddCustom(trimmed)
+      } finally {
+        setSavingCustom(false)
+      }
+    }
+    onChange(trimmed)
+    setIsAdding(false)
+  }
+
+  if (isAdding && canAddCustom) {
     return (
       <div className="flex gap-2">
-        <input 
+        <input
           autoFocus
-          type="text" 
-          className="input flex-1 py-1.5 px-3 text-sm" 
-          placeholder="Type custom entry & hit Enter..." 
-          value={customVal} 
-          onChange={e => setCustomVal(e.target.value)} 
+          type="text"
+          className="input flex-1 py-1.5 px-3 text-sm"
+          placeholder="Add persistent option for all members..."
+          value={customVal}
+          disabled={savingCustom}
+          onChange={e => setCustomVal(e.target.value)}
           onKeyDown={e => {
             if (e.key === 'Enter') {
               e.preventDefault()
-              if (customVal.trim()) onChange(customVal.trim())
-              setIsAdding(false)
+              handleSaveCustom()
             } else if (e.key === 'Escape') {
               setIsAdding(false)
             }
           }}
         />
-        <button 
-          type="button" 
+        <button
+          type="button"
+          disabled={savingCustom}
           className="btn-primary px-3 text-xs"
-          onClick={() => {
-            if (customVal.trim()) onChange(customVal.trim())
-            setIsAdding(false)
-          }}
+          onClick={handleSaveCustom}
         >
-          Add
+          {savingCustom ? 'Saving...' : 'Add'}
         </button>
-        <button 
-          type="button" 
+        <button
+          type="button"
+          disabled={savingCustom}
           className="btn-ghost px-2 text-slate-400 text-xs"
           onClick={() => setIsAdding(false)}
         >
@@ -85,27 +113,49 @@ const CustomSelect = ({ options = [], value, onChange, placeholder }) => {
     )
   }
 
-  const allOptions = Array.from(new Set([...options, ...(value ? [value] : [])]))
+  const isOtherValue = allowOther && (value === otherLabel || (value && value.startsWith(`${otherLabel}: `)))
+  const selectValue = isOtherValue ? otherLabel : (value || '')
+  const otherText = value && value.startsWith(`${otherLabel}: `) ? value.slice(otherLabel.length + 2) : ''
+
+  const baseWithoutOther = options.filter(o => o && o !== otherLabel)
+  const extraCurrent = !isOtherValue && selectValue && !baseWithoutOther.includes(selectValue) ? [selectValue] : []
+  const allOptions = Array.from(new Set([...baseWithoutOther, ...extraCurrent, ...(allowOther ? [otherLabel] : [])]))
 
   return (
-    <select 
-      className="input" 
-      value={value || ''}
-      onChange={e => {
-        if (e.target.value === '__CUSTOM__') {
-          setCustomVal('')
-          setIsAdding(true)
-        } else {
-          onChange(e.target.value)
-        }
-      }}
-    >
-      <option value="" disabled>{placeholder}</option>
-      {allOptions.map(o => <option key={o} value={o}>{o}</option>)}
-      <option value="__CUSTOM__" className="font-semibold text-primary-400 bg-slate-800">
-        + Add Custom...
-      </option>
-    </select>
+    <div>
+      <select
+        className="input"
+        value={selectValue}
+        onChange={e => {
+          if (e.target.value === '__CUSTOM__' && canAddCustom) {
+            setCustomVal('')
+            setIsAdding(true)
+          } else {
+            onChange(e.target.value)
+          }
+        }}
+      >
+        <option value="" disabled>{placeholder}</option>
+        {allOptions.map(o => <option key={o} value={o}>{o}</option>)}
+        {canAddCustom && (
+          <option value="__CUSTOM__" className="font-semibold text-primary-400 bg-slate-800">
+            + Add Custom...
+          </option>
+        )}
+      </select>
+      {isOtherValue && (
+        <input
+          type="text"
+          className="input mt-2 text-sm"
+          placeholder={otherPlaceholder || `Specify ${otherLabel.toLowerCase()} details...`}
+          value={otherText}
+          onChange={e => {
+            const typed = e.target.value
+            onChange(typed ? `${otherLabel}: ${typed}` : otherLabel)
+          }}
+        />
+      )}
+    </div>
   )
 }
 
@@ -160,16 +210,28 @@ export const LeadFormPage = () => {
     sources: [],
     businessCategories: [],
     businessTypes: [],
+    subCategoriesByCategory: {},
     services: [],
     statuses: [],
     reachTypes: []
   })
+  const [leadMeta, setLeadMeta] = useState(null)
 
   const fetchDynamicOptions = async () => {
     try {
       const res = await leadsService.getOptions()
       setDynamicOptions(res.data.data)
     } catch {}
+  }
+
+  const handleAddCustomOption = async (field, value, parentCategory = '') => {
+    try {
+      await leadsService.addOption({ field, value, parentCategory })
+      await fetchDynamicOptions()
+      toast.success(`Added "${value}" for all team members`)
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Only admins can add custom dropdown options')
+    }
   }
 
   // Geographic selector helpers
@@ -194,8 +256,10 @@ export const LeadFormPage = () => {
   // Sub-category options based on selected Business Category
   const availableSubCategories = useMemo(() => {
     if (!form.businessCategory) return []
-    return BUSINESS_CATEGORIES_MAP[form.businessCategory] || []
-  }, [form.businessCategory])
+    const staticSubs = BUSINESS_CATEGORIES_MAP[form.businessCategory] || []
+    const dynamicSubs = dynamicOptions.subCategoriesByCategory?.[form.businessCategory] || []
+    return Array.from(new Set([...staticSubs, ...dynamicSubs]))
+  }, [form.businessCategory, dynamicOptions.subCategoriesByCategory])
 
   useEffect(() => {
     fetchDynamicOptions()
@@ -205,6 +269,12 @@ export const LeadFormPage = () => {
     if (isEdit) {
       leadsService.getById(id).then(res => {
         const lead = res.data.data
+        if (lead.canViewSalesSection === false) {
+          toast.error('Sales section is restricted to the assigned Sales Executive')
+          navigate(`/leads/${id}`)
+          return
+        }
+        setLeadMeta(lead)
         setForm({
           // 1. Business Info
           companyName: lead.companyName || '',
@@ -384,6 +454,10 @@ export const LeadFormPage = () => {
                   handleChange('businessSubCategory', '')
                 }}
                 options={Array.from(new Set([...BUSINESS_CATEGORIES, ...(dynamicOptions.businessCategories || [])]))}
+                canAddCustom={isAdmin}
+                onAddCustom={val => handleAddCustomOption('businessCategory', val)}
+                otherLabel="Other Industry"
+                otherPlaceholder="Specify other business category..."
               />
             </FormGroup>
 
@@ -393,6 +467,10 @@ export const LeadFormPage = () => {
                 value={form.businessSubCategory}
                 onChange={v => handleChange('businessSubCategory', v)}
                 options={availableSubCategories}
+                canAddCustom={isAdmin && !!form.businessCategory}
+                onAddCustom={val => handleAddCustomOption('businessSubCategory', val, form.businessCategory)}
+                otherLabel="Other"
+                otherPlaceholder="Specify other sub-category..."
               />
             </FormGroup>
           </div>
@@ -576,6 +654,10 @@ export const LeadFormPage = () => {
                 value={form.typeOfReach}
                 onChange={v => handleChange('typeOfReach', v)}
                 options={Array.from(new Set([...REACH_TYPES, ...(dynamicOptions.reachTypes || [])]))}
+                canAddCustom={isAdmin}
+                onAddCustom={val => handleAddCustomOption('typeOfReach', val)}
+                otherLabel="Other"
+                otherPlaceholder="Specify other outreach method..."
               />
             </FormGroup>
 
@@ -606,6 +688,10 @@ export const LeadFormPage = () => {
                 value={form.interestedIn}
                 onChange={v => handleChange('interestedIn', v)}
                 options={Array.from(new Set([...SERVICES, ...(dynamicOptions.services || [])]))}
+                canAddCustom={isAdmin}
+                onAddCustom={val => handleAddCustomOption('interestedIn', val)}
+                otherLabel="Other"
+                otherPlaceholder="Specify other service requirement..."
               />
             </FormGroup>
 
@@ -625,6 +711,9 @@ export const LeadFormPage = () => {
                 value={form.status}
                 onChange={v => handleChange('status', v)}
                 options={Array.from(new Set([...STATUSES.map(s => s.value), ...(dynamicOptions.statuses || [])]))}
+                canAddCustom={isAdmin}
+                onAddCustom={val => handleAddCustomOption('status', val)}
+                allowOther={false}
               />
             </FormGroup>
 
@@ -659,20 +748,52 @@ export const LeadFormPage = () => {
             </FormGroup>
 
             {(isAdmin || isTeamLeader) && (
-              <FormGroup label="Assign To Team Member">
-                <select
-                  className="input"
-                  value={form.assignedTo}
-                  onChange={e => handleChange('assignedTo', e.target.value)}
+              <div className="space-y-2">
+                <FormGroup
+                  label={
+                    isEdit && leadMeta?.primaryAssignedTo
+                      ? 'Reassign Lead To Team Member'
+                      : 'Primary Assign To Team Member'
+                  }
                 >
-                  <option value="">Unassigned</option>
-                  {salesUsers.map(u => (
-                    <option key={u._id} value={u._id}>
-                      {u.name} ({u.role?.replace('_', ' ')})
-                    </option>
-                  ))}
-                </select>
-              </FormGroup>
+                  <select
+                    className="input"
+                    value={form.assignedTo}
+                    onChange={e => handleChange('assignedTo', e.target.value)}
+                  >
+                    <option value="">Unassigned</option>
+                    {salesUsers.map(u => (
+                      <option key={u._id} value={u._id}>
+                        {u.name} ({u.role?.replace('_', ' ')})
+                      </option>
+                    ))}
+                  </select>
+                </FormGroup>
+                {isEdit && leadMeta ? (
+                  <div className="rounded-xl bg-slate-900/70 border border-slate-800 p-2.5 text-xs text-slate-400 space-y-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span>Created By:</span>
+                      <span className="text-slate-200 font-medium">{leadMeta.createdBy?.name || 'System'}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span>Primary Assigned:</span>
+                      <span className="text-primary-300 font-medium">
+                        {leadMeta.primaryAssignedTo?.name || 'Not assigned yet'}
+                      </span>
+                    </div>
+                    {leadMeta.reassignedBy && (
+                      <div className="flex items-center justify-between gap-2">
+                        <span>Last Reassigned By:</span>
+                        <span className="text-amber-300 font-medium">{leadMeta.reassignedBy.name}</span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-slate-500">
+                    First assignee is saved as Primary Assigned; managers can reassign anytime.
+                  </p>
+                )}
+              </div>
             )}
           </div>
 

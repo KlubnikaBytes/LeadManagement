@@ -2,7 +2,7 @@ const followUpService = require('../services/followup.service');
 
 const createFollowUp = async (req, res, next) => {
   try {
-    const followUp = await followUpService.createFollowUp(req.params.leadId, req.body, req.user._id);
+    const followUp = await followUpService.createFollowUp(req.params.leadId, req.body, req.user);
     res.status(201).json({ success: true, data: followUp });
   } catch (err) {
     next(err);

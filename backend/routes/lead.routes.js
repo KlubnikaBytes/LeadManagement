@@ -5,7 +5,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 
 
 const { protect, authorize } = require('../middleware/auth.middleware');
 const {
-  getLeads, getOptions, getLead, createLead, updateLead, deleteLead,
+  getLeads, getOptions, addOption, getLead, createLead, updateLead, deleteLead,
   changeStatus, assignLead, checkDuplicate, importLeads, exportLeads,
 } = require('../controllers/lead.controller');
 const { logCall, getCallsByLead } = require('../controllers/call.controller');
@@ -16,6 +16,7 @@ const { getActivitiesByLead } = require('../controllers/activity.controller');
 router.use(protect);
 
 router.get('/options', getOptions);
+router.post('/options', authorize('ADMIN'), addOption);
 router.get('/check-duplicate', checkDuplicate);
 router.get('/export', exportLeads);
 router.post('/import', authorize('ADMIN', 'TEAM_LEADER'), upload.single('file'), importLeads);

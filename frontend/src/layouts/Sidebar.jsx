@@ -62,7 +62,7 @@ export const Sidebar = ({ onClose }) => {
             <Zap className="w-5 h-5 text-white" />
           </div>
           <div>
-            <p className="font-bold text-slate-100 text-sm leading-none">LeadFlow CRM</p>
+            <p className="font-bold text-slate-100 text-sm leading-none">KlubCRM</p>
             <p className="text-xs text-slate-500 mt-0.5">Sales Management</p>
           </div>
         </div>

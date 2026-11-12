@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Phone, Eye, Edit, Trash2, Calendar, MessageSquare, MoreVertical } from 'lucide-react'
+import { Phone, Eye, Edit, Trash2, Calendar, MessageSquare, MoreVertical, Lock } from 'lucide-react'
 import { StatusBadge, PriorityBadge } from '../ui/StatusBadge'
 import { Avatar } from '../ui/Avatar'
 import { formatDate, formatRelative, isFollowUpOverdue, isFollowUpToday } from '../../utils/helpers'
@@ -44,7 +44,9 @@ export const LeadTable = ({ leads, onCall, onDelete, onStatusChange, canDelete, 
     <div onClick={() => setActiveMenu(null)}>
       {/* Mobile & Tablet Card Grid */}
       <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-3 p-3 sm:p-4">
-        {leads.map(lead => (
+        {leads.map(lead => {
+          const canViewSales = lead.canViewSalesSection !== false
+          return (
           <div key={lead._id} className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3 hover:border-slate-700 transition-colors">
             <div className="flex items-start justify-between gap-2">
               <Link to={`/leads/${lead._id}`} className="min-w-0 flex-1 group">
@@ -64,7 +66,13 @@ export const LeadTable = ({ leads, onCall, onDelete, onStatusChange, canDelete, 
                 </p>
               </Link>
               <div className="flex items-center gap-1.5 flex-shrink-0">
-                <StatusBadge status={lead.status} />
+                {canViewSales ? (
+                  <StatusBadge status={lead.status} />
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[11px] bg-amber-500/10 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/25 font-medium">
+                    <Lock className="w-3 h-3" /> Client Info
+                  </span>
+                )}
               </div>
             </div>
 
@@ -76,36 +84,45 @@ export const LeadTable = ({ leads, onCall, onDelete, onStatusChange, canDelete, 
               <span className="text-slate-300 bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700">
                 {lead.typeOfReach || lead.source}
               </span>
-              <PriorityBadge priority={lead.priority} />
+              {canViewSales && <PriorityBadge priority={lead.priority} />}
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400 pt-1">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                 <span>Added: <strong className="text-slate-300 font-medium">{lead.createdBy?.name || '—'}</strong></span>
+                {lead.primaryAssignedTo && lead.primaryAssignedTo._id !== lead.assignedTo?._id && (
+                  <span>Primary: <strong className="text-primary-300 font-medium">{lead.primaryAssignedTo.name}</strong></span>
+                )}
                 <span>Assigned: <strong className="text-slate-300 font-medium">{lead.assignedTo?.name || 'Unassigned'}</strong></span>
-                {lead.nextFollowUpAt && (
+                {canViewSales && lead.nextFollowUpAt && (
                   <span className={`font-medium ${isFollowUpOverdue(lead.nextFollowUpAt) ? 'text-red-400' : isFollowUpToday(lead.nextFollowUpAt) ? 'text-amber-400' : 'text-slate-400'}`}>
                     {isFollowUpOverdue(lead.nextFollowUpAt) ? '⚠ ' : isFollowUpToday(lead.nextFollowUpAt) ? '📅 ' : ''}
                     {formatDate(lead.nextFollowUpAt)}
                   </span>
                 )}
               </div>
-              <span className="inline-flex items-center gap-1 text-slate-300">
-                <Phone className="w-3 h-3 text-slate-500" />
-                {lead.totalCalls}
-              </span>
+              {canViewSales && (
+                <span className="inline-flex items-center gap-1 text-slate-300">
+                  <Phone className="w-3 h-3 text-slate-500" />
+                  {lead.totalCalls}
+                </span>
+              )}
             </div>
 
             <div className="flex items-center justify-end gap-1 pt-2 border-t border-slate-800/70">
               <Link to={`/leads/${lead._id}`} className="btn-ghost text-xs py-1.5 px-2.5">
                 <Eye className="w-3.5 h-3.5" /> View
               </Link>
-              <button onClick={() => onCall && onCall(lead)} className="btn-ghost text-xs py-1.5 px-2.5 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10">
-                <Phone className="w-3.5 h-3.5" /> Call
-              </button>
-              <Link to={`/leads/${lead._id}/edit`} className="btn-ghost text-xs py-1.5 px-2.5">
-                <Edit className="w-3.5 h-3.5" /> Edit
-              </Link>
+              {canViewSales && (
+                <>
+                  <button onClick={() => onCall && onCall(lead)} className="btn-ghost text-xs py-1.5 px-2.5 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10">
+                    <Phone className="w-3.5 h-3.5" /> Call
+                  </button>
+                  <Link to={`/leads/${lead._id}/edit`} className="btn-ghost text-xs py-1.5 px-2.5">
+                    <Edit className="w-3.5 h-3.5" /> Edit
+                  </Link>
+                </>
+              )}
               {canDelete && (
                 <button onClick={() => onDelete && onDelete(lead)} className="btn-ghost text-xs py-1.5 px-2 text-red-400 hover:text-red-300 hover:bg-red-500/10" title="Delete">
                   <Trash2 className="w-3.5 h-3.5" />
@@ -113,7 +130,8 @@ export const LeadTable = ({ leads, onCall, onDelete, onStatusChange, canDelete, 
               )}
             </div>
           </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* Zero-Scroll Desktop Table */}
@@ -123,7 +141,9 @@ export const LeadTable = ({ leads, onCall, onDelete, onStatusChange, canDelete, 
           <TableHeader />
         </thead>
         <tbody>
-          {leads.map(lead => (
+          {leads.map(lead => {
+            const canViewSales = lead.canViewSalesSection !== false
+            return (
             <tr key={lead._id}>
               <td className="max-w-[230px]">
                 <Link to={`/leads/${lead._id}`} className="group block">
@@ -154,10 +174,16 @@ export const LeadTable = ({ leads, onCall, onDelete, onStatusChange, canDelete, 
                 </div>
               </td>
               <td>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <StatusBadge status={lead.status} />
-                  <PriorityBadge priority={lead.priority} />
-                </div>
+                {canViewSales ? (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <StatusBadge status={lead.status} />
+                    <PriorityBadge priority={lead.priority} />
+                  </div>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[11px] bg-amber-500/10 text-amber-300 px-2.5 py-0.5 rounded-full border border-amber-500/25 font-medium whitespace-nowrap">
+                    <Lock className="w-3 h-3" /> Client Info Only
+                  </span>
+                )}
               </td>
               <td>
                 <div className="space-y-1 text-xs">
@@ -170,6 +196,12 @@ export const LeadTable = ({ leads, onCall, onDelete, onStatusChange, canDelete, 
                       </span>
                     ) : <span className="text-slate-600">—</span>}
                   </div>
+                  {lead.primaryAssignedTo && lead.primaryAssignedTo._id !== lead.assignedTo?._id && (
+                    <div className="flex items-center gap-1.5 whitespace-nowrap">
+                      <span className="text-slate-500">Primary:</span>
+                      <span className="text-primary-300 font-medium">{lead.primaryAssignedTo.name}</span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-1.5 whitespace-nowrap">
                     <span className="text-slate-500">Assigned:</span>
                     {lead.assignedTo ? (
@@ -179,36 +211,46 @@ export const LeadTable = ({ leads, onCall, onDelete, onStatusChange, canDelete, 
                 </div>
               </td>
               <td>
-                <div className="space-y-1 text-xs whitespace-nowrap">
-                  <div>
-                    {lead.nextFollowUpAt ? (
-                      <span className={`font-medium ${isFollowUpOverdue(lead.nextFollowUpAt) ? 'text-red-400' : isFollowUpToday(lead.nextFollowUpAt) ? 'text-amber-400' : 'text-slate-300'}`}>
-                        {isFollowUpOverdue(lead.nextFollowUpAt) ? '⚠ ' : isFollowUpToday(lead.nextFollowUpAt) ? '📅 ' : 'Follow-up: '}
-                        {formatDate(lead.nextFollowUpAt)}
+                {canViewSales ? (
+                  <div className="space-y-1 text-xs whitespace-nowrap">
+                    <div>
+                      {lead.nextFollowUpAt ? (
+                        <span className={`font-medium ${isFollowUpOverdue(lead.nextFollowUpAt) ? 'text-red-400' : isFollowUpToday(lead.nextFollowUpAt) ? 'text-amber-400' : 'text-slate-300'}`}>
+                          {isFollowUpOverdue(lead.nextFollowUpAt) ? '⚠ ' : isFollowUpToday(lead.nextFollowUpAt) ? '📅 ' : 'Follow-up: '}
+                          {formatDate(lead.nextFollowUpAt)}
+                        </span>
+                      ) : <span className="text-slate-500">No follow-up</span>}
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-400">
+                      <span>{lead.lastContactedAt ? `Last: ${formatRelative(lead.lastContactedAt)}` : 'Not contacted'}</span>
+                      <span>·</span>
+                      <span className="inline-flex items-center gap-1 text-slate-300">
+                        <Phone className="w-3 h-3 text-slate-500" />
+                        {lead.totalCalls}
                       </span>
-                    ) : <span className="text-slate-500">No follow-up</span>}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-slate-400">
-                    <span>{lead.lastContactedAt ? `Last: ${formatRelative(lead.lastContactedAt)}` : 'Not contacted'}</span>
-                    <span>·</span>
-                    <span className="inline-flex items-center gap-1 text-slate-300">
-                      <Phone className="w-3 h-3 text-slate-500" />
-                      {lead.totalCalls}
-                    </span>
-                  </div>
-                </div>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-xs text-slate-500 whitespace-nowrap">
+                    <Lock className="w-3 h-3" /> Assigned Exec Only
+                  </span>
+                )}
               </td>
               <td className="whitespace-nowrap">
                 <div className="flex items-center gap-0.5">
                   <Link to={`/leads/${lead._id}`} className="btn-icon p-1.5" title="View">
                     <Eye className="w-4 h-4" />
                   </Link>
-                  <button onClick={() => onCall && onCall(lead)} className="btn-icon p-1.5 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10" title="Call">
-                    <Phone className="w-4 h-4" />
-                  </button>
-                  <Link to={`/leads/${lead._id}/edit`} className="btn-icon p-1.5" title="Edit">
-                    <Edit className="w-4 h-4" />
-                  </Link>
+                  {canViewSales && (
+                    <>
+                      <button onClick={() => onCall && onCall(lead)} className="btn-icon p-1.5 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10" title="Call">
+                        <Phone className="w-4 h-4" />
+                      </button>
+                      <Link to={`/leads/${lead._id}/edit`} className="btn-icon p-1.5" title="Edit">
+                        <Edit className="w-4 h-4" />
+                      </Link>
+                    </>
+                  )}
                   {canDelete && (
                     <button onClick={() => onDelete && onDelete(lead)} className="btn-icon p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10" title="Delete">
                       <Trash2 className="w-4 h-4" />
@@ -217,7 +259,8 @@ export const LeadTable = ({ leads, onCall, onDelete, onStatusChange, canDelete, 
                 </div>
               </td>
             </tr>
-          ))}
+            )
+          })}
         </tbody>
       </table>
       </div>

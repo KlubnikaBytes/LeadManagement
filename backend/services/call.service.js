@@ -2,10 +2,15 @@ const Call = require('../models/Call.model');
 const Lead = require('../models/Lead.model');
 const FollowUp = require('../models/FollowUp.model');
 const { createActivity } = require('../utils/helpers');
+const { canAccessSalesSection } = require('./lead.service');
 
-const logCall = async (leadId, data, userId) => {
+const logCall = async (leadId, data, user) => {
+  const userId = user?._id || user;
   const lead = await Lead.findOne({ _id: leadId, isDeleted: false });
   if (!lead) throw Object.assign(new Error('Lead not found'), { statusCode: 404 });
+  if (user?.role && !canAccessSalesSection(lead, user)) {
+    throw Object.assign(new Error('Not authorized to log calls for this lead'), { statusCode: 403 });
+  }
 
   const call = await Call.create({
     lead: leadId,
@@ -71,6 +76,9 @@ const logCall = async (leadId, data, userId) => {
 };
 
 const getCallsByLead = async (leadId, user) => {
+  const lead = await Lead.findOne({ _id: leadId, isDeleted: false });
+  if (!lead) throw Object.assign(new Error('Lead not found'), { statusCode: 404 });
+  if (!canAccessSalesSection(lead, user)) return [];
   const calls = await Call.find({ lead: leadId })
     .populate('calledBy', 'name email avatar')
     .sort({ callDate: -1 });

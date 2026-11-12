@@ -29,6 +29,7 @@ export const LeadsPage = () => {
     assignedTo: urlParams.get('assignedTo') || '',
     priority: urlParams.get('priority') || '',
     followUp: urlParams.get('followUp') || '',
+    mine: urlParams.get('mine') || '',
   })
 
   const [filters, setFilters] = useState(() => parseFiltersFromParams(params))
@@ -42,7 +43,7 @@ export const LeadsPage = () => {
   const [exporting, setExporting] = useState(false)
 
   const { leads, pagination, loading, error, fetchLeads } = useLeads()
-  const { isAdmin, isTeamLeader, canDelete } = useAuth()
+  const { isAdmin, isTeamLeader, isSalesExec, canDelete } = useAuth()
 
   const debouncedSearch = useDebounce(searchQuery, 500)
 
@@ -152,6 +153,28 @@ export const LeadsPage = () => {
             placeholder="Search by name, phone, email, company..."
             className="w-full sm:flex-1 sm:min-w-48"
           />
+          {isSalesExec && (
+            <div className="inline-flex rounded-xl bg-slate-900/80 border border-slate-800 p-1">
+              <button
+                type="button"
+                onClick={() => applyFilters({ ...filters, mine: '' })}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                  !filters.mine ? 'bg-primary-500 text-white' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                All Clients
+              </button>
+              <button
+                type="button"
+                onClick={() => applyFilters({ ...filters, mine: 'true' })}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                  filters.mine === 'true' ? 'bg-primary-500 text-white' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                My Assigned
+              </button>
+            </div>
+          )}
           {(isAdmin || isTeamLeader) && salesUsers.length > 0 && (
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <Users className="w-4 h-4 text-slate-400 shrink-0" />

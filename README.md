@@ -1,4 +1,4 @@
-# Lead Generation & Management CRM
+# KlubCRM — Lead Generation & Management CRM
 
 A production-ready Full-Stack Lead Management CRM built for software/web/app development sales teams. 
 

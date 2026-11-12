@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   Phone, Mail, Globe, MapPin, Calendar, Edit, ArrowLeft, Building2, User,
-  Clock, Tag, DollarSign, Send, Briefcase, ExternalLink, MessageSquare
+  Clock, Tag, DollarSign, Send, Briefcase, ExternalLink, MessageSquare, Lock, UserCheck
 } from 'lucide-react'
 
 const LinkedinIcon = ({ className = "w-4 h-4" }) => (
@@ -65,7 +65,16 @@ export const LeadDetailsPage = () => {
   const fetchLead = async () => {
     try {
       const res = await leadsService.getById(id)
-      setLead(res.data.data)
+      const fetched = res.data.data
+      setLead(fetched)
+      if (fetched.canViewSalesSection !== false) {
+        fetchActivities()
+        fetchNotes()
+      } else {
+        setActivities([])
+        setNotes([])
+        setActiveTab('overview')
+      }
     } catch {
       navigate('/leads')
     } finally {
@@ -92,14 +101,10 @@ export const LeadDetailsPage = () => {
 
   useEffect(() => {
     fetchLead()
-    fetchActivities()
-    fetchNotes()
   }, [id])
 
   const handleModalSuccess = () => {
     fetchLead()
-    fetchActivities()
-    fetchNotes()
   }
 
   useSocketEvent('lead_updated', handleModalSuccess)
@@ -123,8 +128,9 @@ export const LeadDetailsPage = () => {
 
   if (!lead) return null
 
-  const nextFollowUpOverdue = lead.nextFollowUpAt && isFollowUpOverdue(lead.nextFollowUpAt)
-  const nextFollowUpToday = lead.nextFollowUpAt && isFollowUpToday(lead.nextFollowUpAt)
+  const canViewSales = lead.canViewSalesSection !== false
+  const nextFollowUpOverdue = canViewSales && lead.nextFollowUpAt && isFollowUpOverdue(lead.nextFollowUpAt)
+  const nextFollowUpToday = canViewSales && lead.nextFollowUpAt && isFollowUpToday(lead.nextFollowUpAt)
 
   const fullLocation = [lead.address, lead.city, lead.state, lead.country, lead.pincode].filter(Boolean).join(', ')
 
@@ -137,10 +143,12 @@ export const LeadDetailsPage = () => {
           Back to Leads
         </Link>
         <div className="flex items-center gap-2">
-          <Link to={`/leads/${id}/edit`} className="btn-secondary text-sm">
-            <Edit className="w-4 h-4" />
-            Edit Lead
-          </Link>
+          {canViewSales && (
+            <Link to={`/leads/${id}/edit`} className="btn-secondary text-sm">
+              <Edit className="w-4 h-4" />
+              Edit Lead
+            </Link>
+          )}
           {canDelete && (
             <button onClick={() => setModal('delete')} className="btn-danger text-sm">
               Delete
@@ -176,8 +184,16 @@ export const LeadDetailsPage = () => {
             </div>
 
             <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-800">
-              <StatusBadge status={lead.status} size="lg" />
-              <PriorityBadge priority={lead.priority} />
+              {canViewSales ? (
+                <>
+                  <StatusBadge status={lead.status} size="lg" />
+                  <PriorityBadge priority={lead.priority} />
+                </>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 text-xs bg-amber-500/10 text-amber-300 font-medium px-2.5 py-1 rounded-full border border-amber-500/25">
+                  <Lock className="w-3 h-3" /> Client Info Only
+                </span>
+              )}
               {(lead.businessCategory || lead.businessType) && (
                 <span className="text-xs bg-slate-800 text-slate-300 font-medium px-2.5 py-1 rounded-full border border-slate-700">
                   {lead.businessCategory || lead.businessType}
@@ -274,29 +290,59 @@ export const LeadDetailsPage = () => {
             </div>
           </div>
 
-          {/* Action Operations */}
-          <div className="card p-4 space-y-2">
-            <button onClick={() => setModal('call')} className="btn-primary w-full justify-center">
-              📞 Log Call
-            </button>
-            <button onClick={() => setModal('note')} className="btn-secondary w-full justify-center">
-              📝 Add Note
-            </button>
-            <button onClick={() => setModal('followup')} className="btn-secondary w-full justify-center">
-              📅 Schedule Follow-up
-            </button>
-            <button onClick={() => setModal('status')} className="btn-secondary w-full justify-center">
-              🔄 Change Status
-            </button>
-            {canAssign && (
-              <button onClick={() => setModal('assign')} className="btn-secondary w-full justify-center">
-                👤 Reassign Lead
-              </button>
+          {/* Ownership Snapshot (Creation / Primary Assign / Current Reassign) */}
+          <div className="card p-4 space-y-2.5 text-xs">
+            <div className="flex items-center gap-2 pb-2 border-b border-slate-800">
+              <UserCheck className="w-4 h-4 text-primary-400" />
+              <h3 className="font-semibold text-sm text-slate-200">Lead Ownership</h3>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-slate-500">Created By</span>
+              <span className="text-slate-200 font-medium">{lead.createdBy?.name || 'System'}</span>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-slate-500">Primary Assigned</span>
+              <span className="text-primary-300 font-medium">
+                {lead.primaryAssignedTo?.name || 'Not assigned yet'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-slate-500">Current Assigned</span>
+              <span className="text-sky-300 font-medium">{lead.assignedTo?.name || 'Unassigned'}</span>
+            </div>
+            {lead.reassignedBy && (
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-slate-500">Reassigned By</span>
+                <span className="text-amber-300 font-medium">{lead.reassignedBy.name}</span>
+              </div>
             )}
           </div>
 
+          {/* Action Operations */}
+          {canViewSales && (
+            <div className="card p-4 space-y-2">
+              <button onClick={() => setModal('call')} className="btn-primary w-full justify-center">
+                📞 Log Call
+              </button>
+              <button onClick={() => setModal('note')} className="btn-secondary w-full justify-center">
+                📝 Add Note
+              </button>
+              <button onClick={() => setModal('followup')} className="btn-secondary w-full justify-center">
+                📅 Schedule Follow-up
+              </button>
+              <button onClick={() => setModal('status')} className="btn-secondary w-full justify-center">
+                🔄 Change Status
+              </button>
+              {canAssign && (
+                <button onClick={() => setModal('assign')} className="btn-secondary w-full justify-center">
+                  {lead.primaryAssignedTo ? '👤 Reassign Lead' : '👤 Primary Assign Lead'}
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Follow-up Reminder Card */}
-          {lead.nextFollowUpAt && (
+          {canViewSales && lead.nextFollowUpAt && (
             <div
               className={`card p-4 border ${
                 nextFollowUpOverdue
@@ -328,16 +374,20 @@ export const LeadDetailsPage = () => {
 
           {/* Quick Metrics */}
           <div className="card p-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <div className="bg-slate-900/50 rounded-xl p-2.5 border border-slate-800/60">
-              <p className="text-slate-500 text-xs">📞 Total Calls</p>
-              <p className="text-sm font-bold text-slate-200 mt-0.5">{lead.totalCalls}</p>
-            </div>
-            <div className="bg-slate-900/50 rounded-xl p-2.5 border border-slate-800/60">
-              <p className="text-slate-500 text-xs">🕒 Last Contact</p>
-              <p className="text-sm font-semibold text-slate-200 mt-0.5">
-                {lead.lastContactedAt ? formatRelative(lead.lastContactedAt) : 'Never'}
-              </p>
-            </div>
+            {canViewSales && (
+              <>
+                <div className="bg-slate-900/50 rounded-xl p-2.5 border border-slate-800/60">
+                  <p className="text-slate-500 text-xs">📞 Total Calls</p>
+                  <p className="text-sm font-bold text-slate-200 mt-0.5">{lead.totalCalls}</p>
+                </div>
+                <div className="bg-slate-900/50 rounded-xl p-2.5 border border-slate-800/60">
+                  <p className="text-slate-500 text-xs">🕒 Last Contact</p>
+                  <p className="text-sm font-semibold text-slate-200 mt-0.5">
+                    {lead.lastContactedAt ? formatRelative(lead.lastContactedAt) : 'Never'}
+                  </p>
+                </div>
+              </>
+            )}
             <div className="bg-slate-900/50 rounded-xl p-2.5 border border-slate-800/60">
               <p className="text-slate-500 text-xs">🗓️ Created</p>
               <p className="text-sm font-semibold text-slate-200 mt-0.5">{formatDate(lead.createdAt)}</p>
@@ -357,11 +407,14 @@ export const LeadDetailsPage = () => {
           {/* Navigation Tabs */}
           <div className="card">
             <div className="flex border-b border-slate-800 overflow-x-auto">
-              {[
-                { key: 'overview', label: 'Lead Overview' },
-                { key: 'activity', label: 'Activity Timeline', count: activities.length },
-                { key: 'notes', label: 'Notes', count: notes.length },
-              ].map(tab => (
+              {(canViewSales
+                ? [
+                    { key: 'overview', label: 'Lead Overview' },
+                    { key: 'activity', label: 'Activity Timeline', count: activities.length },
+                    { key: 'notes', label: 'Notes', count: notes.length },
+                  ]
+                : [{ key: 'overview', label: 'Client & Lead Info' }]
+              ).map(tab => (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
@@ -504,49 +557,117 @@ export const LeadDetailsPage = () => {
                   </div>
 
                   {/* SECTION 4: SALES & ENGAGEMENT DETAILS */}
-                  <div className="space-y-3 pt-2">
-                    <div className="flex items-center gap-2 pb-2 border-b border-slate-800">
-                      <Briefcase className="w-4 h-4 text-primary-400" />
-                      <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider">
-                        4. Sales & Engagement Details
-                      </h3>
-                    </div>
+                  {canViewSales ? (
+                    <>
+                      <div className="space-y-3 pt-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-800">
+                          <div className="flex items-center gap-2">
+                            <Briefcase className="w-4 h-4 text-primary-400" />
+                            <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider">
+                              4. Sales & Engagement Details
+                            </h3>
+                          </div>
+                          {canAssign && (
+                            <button
+                              type="button"
+                              onClick={() => setModal('assign')}
+                              className="text-xs text-primary-400 hover:text-primary-300 font-medium"
+                            >
+                              {lead.primaryAssignedTo ? 'Reassign Lead →' : 'Primary Assign →'}
+                            </button>
+                          )}
+                        </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <DetailItem icon={Tag} label="Pipeline Status" value={lead.status} />
-                      <DetailItem icon={Tag} label="Priority" value={lead.priority} />
-                      <DetailItem icon={DollarSign} label="Interested In" value={lead.interestedIn} />
-                      <DetailItem icon={DollarSign} label="Estimated Budget" value={lead.estimatedBudget} />
-                      <DetailItem
-                        icon={User}
-                        label="Assigned Team Member"
-                        value={lead.assignedTo?.name || 'Unassigned'}
-                      />
-                      <DetailItem
-                        icon={Calendar}
-                        label="Next Scheduled Follow-up"
-                        value={lead.nextFollowUpAt ? formatDateTime(lead.nextFollowUpAt) : 'None scheduled'}
-                      />
-                    </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <DetailItem icon={Tag} label="Pipeline Status" value={lead.status} />
+                          <DetailItem icon={Tag} label="Priority" value={lead.priority} />
+                          <DetailItem icon={DollarSign} label="Interested In" value={lead.interestedIn} />
+                          <DetailItem icon={DollarSign} label="Estimated Budget" value={lead.estimatedBudget} />
+                          <DetailItem
+                            icon={User}
+                            label="Created By"
+                            value={lead.createdBy?.name || 'System'}
+                          />
+                          <DetailItem
+                            icon={UserCheck}
+                            label="Primary Assigned To"
+                            value={
+                              lead.primaryAssignedTo?.name
+                                ? `${lead.primaryAssignedTo.name}${lead.primaryAssignedAt ? ` (${formatDate(lead.primaryAssignedAt)})` : ''}`
+                                : 'Not assigned yet'
+                            }
+                          />
+                          <DetailItem
+                            icon={User}
+                            label="Currently Assigned / Reassigned To"
+                            value={lead.assignedTo?.name || 'Unassigned'}
+                          />
+                          <DetailItem
+                            icon={Calendar}
+                            label="Next Scheduled Follow-up"
+                            value={lead.nextFollowUpAt ? formatDateTime(lead.nextFollowUpAt) : 'None scheduled'}
+                          />
+                        </div>
 
-                    {lead.notes && (
-                      <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-800">
-                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
-                          General / Internal Notes
-                        </p>
-                        <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{lead.notes}</p>
+                        {lead.assignmentHistory?.length > 0 && (
+                          <div className="p-3.5 bg-slate-900/40 rounded-xl border border-slate-800/80 space-y-2">
+                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                              Assignment Trail (Creation → Primary → Reassign)
+                            </p>
+                            <div className="space-y-1.5">
+                              {lead.assignmentHistory.map((item, idx) => (
+                                <div key={idx} className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-300">
+                                  <span>
+                                    <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold mr-1.5 ${
+                                      item.type === 'PRIMARY'
+                                        ? 'bg-primary-500/15 text-primary-300 border border-primary-500/25'
+                                        : 'bg-amber-500/15 text-amber-300 border border-amber-500/25'
+                                    }`}>
+                                      {item.type}
+                                    </span>
+                                    {item.assignedTo?.name || 'Executive'}
+                                    {item.assignedBy?.name ? ` (by ${item.assignedBy.name})` : ''}
+                                    {item.note ? ` — "${item.note}"` : ''}
+                                  </span>
+                                  <span className="text-slate-500">{formatDateTime(item.assignedAt)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {lead.notes && (
+                          <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-800">
+                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                              General / Internal Notes
+                            </p>
+                            <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{lead.notes}</p>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
 
-                  {/* Conversion Details (if converted) */}
-                  {lead.status === 'CONVERTED' && lead.convertedAt && (
-                    <div className="p-4 border border-green-500/30 bg-green-500/10 rounded-xl">
-                      <p className="text-green-400 font-bold text-sm mb-1">🎉 Lead Converted</p>
-                      <p className="text-xs text-slate-300">Converted on {formatDate(lead.convertedAt)}</p>
-                      {lead.finalService && <p className="text-xs text-slate-300 mt-1">Service: {lead.finalService}</p>}
-                      {lead.finalBudget && <p className="text-xs text-slate-300 mt-1">Budget: {lead.finalBudget}</p>}
-                      {lead.conversionNotes && <p className="text-xs text-slate-400 mt-1.5 italic">"{lead.conversionNotes}"</p>}
+                      {/* Conversion Details (if converted) */}
+                      {lead.status === 'CONVERTED' && lead.convertedAt && (
+                        <div className="p-4 border border-green-500/30 bg-green-500/10 rounded-xl">
+                          <p className="text-green-400 font-bold text-sm mb-1">🎉 Lead Converted</p>
+                          <p className="text-xs text-slate-300">Converted on {formatDate(lead.convertedAt)}</p>
+                          {lead.finalService && <p className="text-xs text-slate-300 mt-1">Service: {lead.finalService}</p>}
+                          {lead.finalBudget && <p className="text-xs text-slate-300 mt-1">Budget: {lead.finalBudget}</p>}
+                          {lead.conversionNotes && <p className="text-xs text-slate-400 mt-1.5 italic">"{lead.conversionNotes}"</p>}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="p-5 rounded-xl border border-amber-500/25 bg-amber-500/5 space-y-2 mt-2">
+                      <div className="flex items-center gap-2 text-amber-300 font-semibold text-sm">
+                        <Lock className="w-4 h-4" />
+                        <span>4. Sales &amp; Engagement Details (Restricted)</span>
+                      </div>
+                      <p className="text-xs text-slate-400 leading-relaxed">
+                        Client &amp; Lead Info (Sections 1–3) is shared across the sales team. Sales pipeline, budget,
+                        follow-ups, call logs, and internal notes are visible only to the assigned Sales Executive
+                        {lead.assignedTo?.name ? ` (${lead.assignedTo.name})` : ''} and Managers/Admins.
+                      </p>
                     </div>
                   )}
                 </div>

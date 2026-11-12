@@ -2,7 +2,7 @@ const callService = require('../services/call.service');
 
 const logCall = async (req, res, next) => {
   try {
-    const call = await callService.logCall(req.params.leadId, req.body, req.user._id);
+    const call = await callService.logCall(req.params.leadId, req.body, req.user);
     res.status(201).json({ success: true, data: call });
   } catch (err) {
     next(err);

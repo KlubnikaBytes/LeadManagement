@@ -3,6 +3,7 @@ import api from './api'
 export const leadsService = {
   getAll: (params) => api.get('/leads', { params }),
   getOptions: () => api.get('/leads/options'),
+  addOption: (data) => api.post('/leads/options', data),
   getById: (id) => api.get(`/leads/${id}`),
   create: (data) => api.post('/leads', data),
   update: (id, data) => api.put(`/leads/${id}`, data),

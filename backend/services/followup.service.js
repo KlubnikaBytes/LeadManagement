@@ -1,10 +1,15 @@
 const FollowUp = require('../models/FollowUp.model');
 const Lead = require('../models/Lead.model');
 const { createActivity } = require('../utils/helpers');
+const { canAccessSalesSection } = require('./lead.service');
 
-const createFollowUp = async (leadId, data, userId) => {
+const createFollowUp = async (leadId, data, user) => {
+  const userId = user?._id || user;
   const lead = await Lead.findOne({ _id: leadId, isDeleted: false });
   if (!lead) throw Object.assign(new Error('Lead not found'), { statusCode: 404 });
+  if (user?.role && !canAccessSalesSection(lead, user)) {
+    throw Object.assign(new Error('Not authorized to schedule follow-up for this lead'), { statusCode: 403 });
+  }
 
   // Cancel previous pending follow-ups
   await FollowUp.updateMany(

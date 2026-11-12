@@ -3,19 +3,63 @@ const Activity = require('../models/Activity.model');
 const Notification = require('../models/Notification.model');
 const { paginate, buildSortQuery, createActivity } = require('../utils/helpers');
 
+const canAccessSalesSection = (lead, user) => {
+  if (!user) return false;
+  if (user.role === 'ADMIN' || user.role === 'TEAM_LEADER') return true;
+  const userId = user._id.toString();
+  const assignedId = (lead.assignedTo?._id || lead.assignedTo)?.toString();
+  if (assignedId) return assignedId === userId;
+  const createdId = (lead.createdBy?._id || lead.createdBy)?.toString();
+  return createdId === userId;
+};
+
+const sanitizeLeadForUser = (leadDoc, user) => {
+  const lead = leadDoc?.toObject ? leadDoc.toObject() : { ...leadDoc };
+  const canViewSalesSection = canAccessSalesSection(lead, user);
+  if (canViewSalesSection) {
+    return { ...lead, canViewSalesSection: true };
+  }
+  return {
+    ...lead,
+    status: null,
+    priority: null,
+    interestedIn: null,
+    estimatedBudget: null,
+    notes: null,
+    lastContactedAt: null,
+    nextFollowUpAt: null,
+    totalCalls: null,
+    convertedAt: null,
+    convertedBy: null,
+    conversionNotes: null,
+    finalService: null,
+    finalBudget: null,
+    assignmentHistory: [],
+    canViewSalesSection: false,
+  };
+};
+
 const getLeads = async (query, user) => {
   const {
     page = 1, limit = 20, search, status, source, typeOfReach, businessCategory,
-    assignedTo, createdBy, member, priority, followUp, sortBy = 'createdAt', sortOrder = 'desc',
+    assignedTo, createdBy, member, mine, priority, followUp, sortBy = 'createdAt', sortOrder = 'desc',
   } = query;
 
   const { page: pageNum, limit: limitNum, skip } = paginate(page, limit, query._export ? 50000 : 100);
   const filter = { isDeleted: false };
   const andConditions = [];
 
-  // Role-based filtering
+  // Sales Executives can browse all Client & Lead Info; personal/Section-4 filters stay scoped to their own leads
   if (user.role === 'SALES_EXECUTIVE') {
-    andConditions.push({ $or: [{ assignedTo: user._id }, { createdBy: user._id }] });
+    if (mine === 'true' || status || priority || followUp) {
+      andConditions.push({
+        $or: [
+          { assignedTo: user._id },
+          { createdBy: user._id, assignedTo: null },
+          { createdBy: user._id, assignedTo: { $exists: false } },
+        ],
+      });
+    }
   } else if (user.role === 'TEAM_LEADER') {
     const User = require('../models/User.model');
     const teamMembers = await User.find({ teamLeader: user._id, isActive: true }).select('_id');
@@ -84,9 +128,11 @@ const getLeads = async (query, user) => {
   }
 
   const sort = buildSortQuery(sortBy, sortOrder);
-  const [leads, total] = await Promise.all([
+  const [rawLeads, total] = await Promise.all([
     Lead.find(filter)
       .populate('assignedTo', 'name email avatar role')
+      .populate('primaryAssignedTo', 'name email avatar role')
+      .populate('reassignedBy', 'name email avatar role')
       .populate('createdBy', 'name email avatar role')
       .sort(sort)
       .skip(skip)
@@ -94,6 +140,8 @@ const getLeads = async (query, user) => {
       .lean(),
     Lead.countDocuments(filter),
   ]);
+
+  const leads = rawLeads.map((l) => sanitizeLeadForUser(l, user));
 
   return {
     data: leads,
@@ -103,17 +151,18 @@ const getLeads = async (query, user) => {
 
 const getLeadById = async (id, user) => {
   const filter = { _id: id, isDeleted: false };
-  if (user.role === 'SALES_EXECUTIVE') {
-    filter.$or = [{ assignedTo: user._id }, { createdBy: user._id }];
-  }
 
   const lead = await Lead.findOne(filter)
     .populate('assignedTo', 'name email avatar role')
-    .populate('createdBy', 'name email')
-    .populate('convertedBy', 'name email');
+    .populate('primaryAssignedTo', 'name email avatar role')
+    .populate('reassignedBy', 'name email avatar role')
+    .populate('createdBy', 'name email avatar role')
+    .populate('convertedBy', 'name email')
+    .populate('assignmentHistory.assignedTo', 'name email role')
+    .populate('assignmentHistory.assignedBy', 'name email role');
 
   if (!lead) throw Object.assign(new Error('Lead not found'), { statusCode: 404 });
-  return lead;
+  return sanitizeLeadForUser(lead, user);
 };
 
 const createLead = async (data, user) => {
@@ -142,7 +191,21 @@ const createLead = async (data, user) => {
     ],
   });
 
-  const lead = await Lead.create({ ...data, createdBy: userId });
+  const leadPayload = { ...data, createdBy: userId };
+  if (leadPayload.assignedTo) {
+    leadPayload.primaryAssignedTo = leadPayload.primaryAssignedTo || leadPayload.assignedTo;
+    leadPayload.primaryAssignedAt = new Date();
+    leadPayload.assignmentHistory = [
+      {
+        assignedTo: leadPayload.assignedTo,
+        assignedBy: userId,
+        type: 'PRIMARY',
+        assignedAt: new Date(),
+      },
+    ];
+  }
+
+  const lead = await Lead.create(leadPayload);
 
   await createActivity({
     lead: lead._id,
@@ -178,12 +241,13 @@ const updateLead = async (id, data, userId, userRole) => {
   const lead = await Lead.findOne({ _id: id, isDeleted: false });
   if (!lead) throw Object.assign(new Error('Lead not found'), { statusCode: 404 });
 
-  if (
-    userRole === 'SALES_EXECUTIVE' &&
-    lead.assignedTo?.toString() !== userId.toString() &&
-    lead.createdBy?.toString() !== userId.toString()
-  ) {
+  if (!canAccessSalesSection(lead, { _id: userId, role: userRole })) {
     throw Object.assign(new Error('Not authorized to update this lead'), { statusCode: 403 });
+  }
+
+  if (userRole === 'SALES_EXECUTIVE') {
+    delete data.assignedTo;
+    delete data.primaryAssignedTo;
   }
 
   if (data.assignedTo === '') {
@@ -199,6 +263,9 @@ const updateLead = async (id, data, userId, userRole) => {
   if (data.businessCategory && !data.businessType) data.businessType = data.businessCategory;
   if (data.businessType && !data.businessCategory) data.businessCategory = data.businessType;
 
+  // Preserve original primaryAssignedTo unless never set
+  const incomingAssignedTo = data.assignedTo;
+  delete data.primaryAssignedTo;
   Object.assign(lead, data);
 
   if (data.status && data.status !== oldStatus) {
@@ -216,21 +283,39 @@ const updateLead = async (id, data, userId, userRole) => {
     }
   }
 
-  if (data.assignedTo && data.assignedTo.toString() !== oldAssignedTo) {
+  if (incomingAssignedTo && incomingAssignedTo.toString() !== oldAssignedTo) {
+    const isPrimary = !lead.primaryAssignedTo;
+    if (isPrimary) {
+      lead.primaryAssignedTo = incomingAssignedTo;
+      lead.primaryAssignedAt = new Date();
+    } else {
+      lead.reassignedBy = userId;
+      lead.reassignedAt = new Date();
+    }
+    lead.assignmentHistory = lead.assignmentHistory || [];
+    lead.assignmentHistory.push({
+      assignedTo: incomingAssignedTo,
+      assignedBy: userId,
+      type: isPrimary ? 'PRIMARY' : 'REASSIGN',
+      assignedAt: new Date(),
+    });
+
     await createActivity({
       lead: lead._id,
       user: userId,
-      type: 'LEAD_REASSIGNED',
-      description: `Lead reassigned`,
-      metadata: { from: oldAssignedTo, to: data.assignedTo },
+      type: isPrimary ? 'LEAD_ASSIGNED' : 'LEAD_REASSIGNED',
+      description: isPrimary ? 'Lead primary assigned' : 'Lead reassigned',
+      metadata: { from: oldAssignedTo, to: incomingAssignedTo },
     });
-    await Notification.create({
-      user: data.assignedTo,
-      title: 'Lead Assigned to You',
-      message: `Lead "${lead.name}" has been assigned to you`,
-      type: 'LEAD_ASSIGNED',
-      lead: lead._id,
-    });
+    if (incomingAssignedTo.toString() !== userId.toString()) {
+      await Notification.create({
+        user: incomingAssignedTo,
+        title: isPrimary ? 'New Lead Assigned to You' : 'Lead Reassigned to You',
+        message: `Lead "${lead.name}" has been assigned to you`,
+        type: 'LEAD_ASSIGNED',
+        lead: lead._id,
+      });
+    }
   }
 
   await lead.save();
@@ -246,9 +331,14 @@ const updateLead = async (id, data, userId, userRole) => {
   return lead;
 };
 
-const changeLeadStatus = async (id, status, userId, extra = {}) => {
+const changeLeadStatus = async (id, status, user, extra = {}) => {
   const lead = await Lead.findOne({ _id: id, isDeleted: false });
   if (!lead) throw Object.assign(new Error('Lead not found'), { statusCode: 404 });
+
+  const userId = user?._id || user;
+  if (user?.role && !canAccessSalesSection(lead, user)) {
+    throw Object.assign(new Error('Not authorized to update lead status'), { statusCode: 403 });
+  }
 
   const oldStatus = lead.status;
   lead.status = status;
@@ -274,27 +364,46 @@ const changeLeadStatus = async (id, status, userId, extra = {}) => {
   return lead;
 };
 
-const assignLead = async (id, assignedTo, userId) => {
+const assignLead = async (id, assignedTo, userId, note = '') => {
   const lead = await Lead.findOne({ _id: id, isDeleted: false });
   if (!lead) throw Object.assign(new Error('Lead not found'), { statusCode: 404 });
 
   const oldAssignedTo = lead.assignedTo;
+  const isPrimary = !lead.primaryAssignedTo;
   lead.assignedTo = assignedTo;
+
+  if (isPrimary) {
+    lead.primaryAssignedTo = assignedTo;
+    lead.primaryAssignedAt = new Date();
+  } else {
+    lead.reassignedBy = userId;
+    lead.reassignedAt = new Date();
+  }
+
+  lead.assignmentHistory = lead.assignmentHistory || [];
+  lead.assignmentHistory.push({
+    assignedTo,
+    assignedBy: userId,
+    type: isPrimary ? 'PRIMARY' : 'REASSIGN',
+    assignedAt: new Date(),
+    note: note || undefined,
+  });
+
   await lead.save();
 
-  const type = oldAssignedTo ? 'LEAD_REASSIGNED' : 'LEAD_ASSIGNED';
+  const type = isPrimary ? 'LEAD_ASSIGNED' : 'LEAD_REASSIGNED';
   await createActivity({
     lead: lead._id,
     user: userId,
     type,
-    description: oldAssignedTo ? `Lead reassigned` : `Lead assigned`,
-    metadata: { from: oldAssignedTo, to: assignedTo },
+    description: isPrimary ? 'Lead primary assigned' : 'Lead reassigned',
+    metadata: { from: oldAssignedTo, to: assignedTo, note },
   });
 
   await Notification.create({
     user: assignedTo,
-    title: 'Lead Assigned to You',
-    message: `Lead "${lead.name}" has been assigned to you`,
+    title: isPrimary ? 'New Lead Assigned to You' : 'Lead Reassigned to You',
+    message: `Lead "${lead.name}" has been ${isPrimary ? 'assigned' : 'reassigned'} to you`,
     type: 'LEAD_ASSIGNED',
     lead: lead._id,
   });
@@ -331,4 +440,15 @@ const checkDuplicate = async (phone, email, website) => {
   return Lead.findOne({ $or: orConditions }).populate('assignedTo', 'name email');
 };
 
-module.exports = { getLeads, getLeadById, createLead, updateLead, changeLeadStatus, assignLead, deleteLead, checkDuplicate };
+module.exports = {
+  getLeads,
+  getLeadById,
+  createLead,
+  updateLead,
+  changeLeadStatus,
+  assignLead,
+  deleteLead,
+  checkDuplicate,
+  canAccessSalesSection,
+  sanitizeLeadForUser,
+};
