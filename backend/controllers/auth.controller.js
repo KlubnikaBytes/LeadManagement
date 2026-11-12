@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User.model');
 const { loginUser, getMe, registerAdmin } = require('../services/auth.service');
+const { extractToken } = require('../middleware/auth.middleware');
 
 const getCookieOptions = () => {
   const isProd = process.env.NODE_ENV === 'production';
@@ -26,7 +27,7 @@ const signupAdmin = async (req, res, next) => {
     }
     const { user, token } = await registerAdmin({ name, email, password });
     setTokenCookie(res, token);
-    res.status(201).json({ success: true, data: { user } });
+    res.status(201).json({ success: true, data: { user, token } });
   } catch (err) {
     next(err);
   }
@@ -41,7 +42,7 @@ const login = async (req, res, next) => {
     console.log(`[LOGIN ATTEMPT] Email: '${email}', Password Length: ${password.length}`);
     const { user, token } = await loginUser(email, password);
     setTokenCookie(res, token);
-    res.json({ success: true, data: { user } });
+    res.json({ success: true, data: { user, token } });
   } catch (err) {
     next(err);
   }
@@ -58,7 +59,7 @@ const getProfile = async (req, res, next) => {
 
 const getSession = async (req, res) => {
   try {
-    const token = req.cookies.jwt;
+    const token = extractToken(req);
     if (!token) {
       return res.json({ success: true, data: null });
     }

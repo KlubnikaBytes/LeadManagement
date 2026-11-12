@@ -1,9 +1,20 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User.model');
 
+const extractToken = (req) => {
+  const cookieToken = req.cookies?.jwt;
+  if (cookieToken && cookieToken !== 'none') return cookieToken;
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const bearer = authHeader.slice(7).trim();
+    if (bearer && bearer !== 'none') return bearer;
+  }
+  return null;
+};
+
 const protect = async (req, res, next) => {
   try {
-    let token = req.cookies.jwt;
+    const token = extractToken(req);
     if (!token) {
       return res.status(401).json({ success: false, message: 'Not authorized, no token' });
     }
@@ -31,4 +42,4 @@ const authorize = (...roles) => {
   };
 };
 
-module.exports = { protect, authorize };
+module.exports = { protect, authorize, extractToken };

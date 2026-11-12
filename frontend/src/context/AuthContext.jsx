@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { authService } from '../services/auth.service'
+import { setAuthToken, clearAuthToken } from '../services/api'
 import toast from 'react-hot-toast'
 
 const AuthContext = createContext(null)
@@ -13,7 +14,9 @@ export const AuthProvider = ({ children }) => {
     const initAuth = async () => {
       try {
         const res = await authService.getSession()
-        setUser(res.data.data)
+        const sessionUser = res.data.data
+        if (!sessionUser) clearAuthToken()
+        setUser(sessionUser)
       } catch {
         setUser(null)
       } finally {
@@ -27,7 +30,8 @@ export const AuthProvider = ({ children }) => {
     setLoading(true)
     try {
       const res = await authService.signup({ name, email, password })
-      const { user: userData } = res.data.data
+      const { user: userData, token } = res.data.data
+      if (token) setAuthToken(token)
       setUser(userData)
       toast.success(`Admin account created successfully!`)
       return userData
@@ -40,7 +44,8 @@ export const AuthProvider = ({ children }) => {
     setLoading(true)
     try {
       const res = await authService.login({ email, password })
-      const { user: userData } = res.data.data
+      const { user: userData, token } = res.data.data
+      if (token) setAuthToken(token)
       setUser(userData)
       toast.success(`Welcome back, ${userData.name}!`)
       return userData
@@ -53,6 +58,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await authService.logout()
     } catch {}
+    clearAuthToken()
     setUser(null)
     toast.success('Logged out successfully')
   }, [])

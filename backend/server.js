@@ -38,6 +38,7 @@ const corsOptions = {
     return callback(new Error(`CORS blocked for origin: ${origin}`));
   },
   credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
 const io = new Server(server, {
