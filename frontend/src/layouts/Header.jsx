@@ -47,7 +47,7 @@ export const Header = ({ onMenuClick }) => {
   }
 
   return (
-    <header className="bg-kb-espresso border-b border-kb-cocoa px-3 sm:px-4 lg:px-6 py-3 flex items-center justify-between gap-2 sm:gap-4 flex-shrink-0 text-kb-white">
+    <header className="h-[68px] bg-kb-espresso border-b border-kb-cocoa px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-2 sm:gap-4 flex-shrink-0 text-kb-white">
       <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
         <button
           onClick={onMenuClick}

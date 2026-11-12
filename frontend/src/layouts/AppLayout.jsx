@@ -9,7 +9,7 @@ export const AppLayout = () => {
   return (
     <div className="flex h-screen bg-kb-cream overflow-hidden">
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex w-64 flex-shrink-0">
+      <div className="hidden lg:flex lg:flex-col w-64 flex-shrink-0">
         <Sidebar />
       </div>
 

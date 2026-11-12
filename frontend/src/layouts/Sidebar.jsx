@@ -57,11 +57,11 @@ export const Sidebar = ({ onClose }) => {
   const { user, logout, isAdmin, isTeamLeader, canImport } = useAuth()
 
   return (
-    <div className="flex flex-col h-full bg-kb-espresso border-r border-kb-cocoa text-kb-white">
+    <div className="flex flex-col w-full h-full bg-kb-espresso border-r border-kb-cocoa text-kb-white">
       {/* Logo */}
-      <div className="px-4 py-4 border-b border-kb-cocoa flex items-center justify-between gap-2">
+      <div className="h-[68px] px-4 border-b border-kb-cocoa flex items-center justify-between gap-2 flex-shrink-0">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-11 h-11 rounded-full bg-kb-cream p-1 ring-2 ring-kb-strawberry flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden">
+          <div className="w-10 h-10 rounded-full bg-kb-cream p-1 ring-2 ring-kb-strawberry flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden">
             <img src="/klubnika-logo.png" alt="Klubnika Bytes" className="w-full h-full object-contain" />
           </div>
           <div className="min-w-0">
