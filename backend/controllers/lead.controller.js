@@ -173,26 +173,22 @@ const importLeads = async (req, res, next) => {
 
     let records = [];
     const fileBuffer = req.file.buffer;
-    const mimetype = req.file.mimetype;
-    const originalName = req.file.originalname.toLowerCase();
+    const originalName = (req.file.originalname || '').toLowerCase();
 
-    if (originalName.endsWith('.csv')) {
-      const content = fileBuffer.toString('utf-8');
-      const lines = content.split('\n');
-      const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-
-      for (let i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
-        const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-        const record = {};
-        headers.forEach((h, idx) => { record[h] = values[idx] || ''; });
-        records.push(record);
-      }
-    } else {
-      const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
+    try {
+      const workbook = XLSX.read(fileBuffer, { type: 'buffer', cellDates: true });
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
-      records = XLSX.utils.sheet_to_json(sheet);
+      records = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+    } catch (parseErr) {
+      if (originalName.endsWith('.csv')) {
+        const textContent = fileBuffer.toString('utf-8');
+        const workbook = XLSX.read(textContent, { type: 'string' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        records = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+      } else {
+        throw parseErr;
+      }
     }
 
     const assignedTo = req.body.assignedTo || null;

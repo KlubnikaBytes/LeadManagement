@@ -4,6 +4,32 @@ const { createActivity } = require('../utils/helpers');
 const VALID_STATUSES = ['NEW', 'CONTACTED', 'INTERESTED', 'CALL_LATER', 'FOLLOW_UP', 'NOT_INTERESTED', 'CONVERTED', 'LOST'];
 const VALID_PRIORITIES = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
 
+const extractPhones = (str) => {
+  if (!str) return [];
+  return String(str)
+    .split(/[/,;|]|\bor\b|\band\b/i)
+    .map((p) => p.replace(/[^\d+]/g, '').trim())
+    .filter((p) => p.replace(/\D/g, '').length >= 6);
+};
+
+const cleanWebsite = (url) => {
+  if (!url) return '';
+  const trimmed = String(url).trim();
+  if (/^(no\s*website|none|n\/a|na|-|nil|null|not\s*available)$/i.test(trimmed)) {
+    return '';
+  }
+  return trimmed;
+};
+
+const cleanEmail = (val) => {
+  if (!val) return '';
+  const trimmed = String(val).trim().toLowerCase();
+  if (/^(no\s*email|none|n\/a|na|-|nil|null|not\s*available)$/i.test(trimmed)) {
+    return '';
+  }
+  return trimmed;
+};
+
 // Robust value extractor matching various header naming styles
 const getVal = (row, ...keys) => {
   for (const k of keys) {
@@ -70,17 +96,62 @@ const processImport = async (records, user, selectedAssigneeId) => {
     const rowNum = i + 2;
     const errors = [];
 
-    // 1. Mandatory Fields
-    const name = getVal(row, 'POC Name', 'pocName', 'Name', 'name', 'Contact Person', 'contactPerson');
-    const rawPhone = getVal(row, 'POC Phone', 'pocPhone', 'Phone', 'phone', 'Mobile', 'mobile', 'Contact Number', 'contactNumber');
+    // 1. Mandatory Fields & Smart Name Fallbacks
+    let name = getVal(row, 'POC Name', 'pocName', 'Name', 'name', 'Contact Person', 'contactPerson');
+    const companyName = getVal(row, 'Company Name', 'companyName', 'Company', 'company', 'Business Name', 'businessName');
+    const pocJobTitle = getVal(row, 'POC Job Title', 'pocJobTitle', 'Job Title', 'jobTitle', 'Designation', 'designation');
 
-    if (!name) errors.push('Name is required');
-    if (!rawPhone) errors.push('Phone is required');
+    // Smart fallback if POC Name column was left blank by user:
+    if (!name) {
+      if (companyName && /^(dr|mr|ms|mrs|prof)\.?\s+/i.test(companyName)) {
+        name = companyName; // e.g. "Dr. Nilanjan Chandra", "Dr. Amit Dey"
+      } else if (pocJobTitle) {
+        name = pocJobTitle; // e.g. "Reception", "Manager"
+      } else if (companyName) {
+        name = companyName; // e.g. "Shapoorji Clinic & Diagnostics"
+      } else {
+        name = 'Contact Person';
+      }
+    }
 
-    // Clean phone (keep only digits and optional leading +)
-    const phone = rawPhone.replace(/[^\d+]/g, '').trim();
-    if (phone && phone.replace(/\D/g, '').length < 6) {
-      errors.push('Phone must have at least 6 digits');
+    if (!name && !companyName) {
+      errors.push('POC Name or Company Name is required');
+    }
+
+    // 2. Phone Extraction (handles primary, alt phone fallback, and multiple numbers like "9876543210 / 9876543211")
+    const rawPhoneField = getVal(
+      row,
+      'POC Phone',
+      'pocPhone',
+      'Phone',
+      'phone',
+      'Mobile',
+      'mobile',
+      'Contact Number',
+      'contactNumber',
+      'Primary Phone'
+    );
+    const rawAltPhoneField = getVal(
+      row,
+      'POC Alt Phone',
+      'pocAltPhone',
+      'Alternate Phone',
+      'alternatePhone',
+      'Alt Phone',
+      'altPhone',
+      'WhatsApp',
+      'whatsapp'
+    );
+
+    const primaryPhones = extractPhones(rawPhoneField);
+    const altPhones = extractPhones(rawAltPhoneField);
+
+    const phone = primaryPhones[0] || altPhones[0] || '';
+    const alternatePhone =
+      primaryPhones[1] || (primaryPhones.length > 0 ? altPhones[0] : altPhones[1]) || '';
+
+    if (!phone) {
+      errors.push('Valid Phone Number is required (at least 6 digits)');
     }
 
     if (errors.length > 0) {
@@ -89,7 +160,8 @@ const processImport = async (records, user, selectedAssigneeId) => {
       continue;
     }
 
-    const email = getVal(row, 'POC Email', 'pocEmail', 'Email', 'email').toLowerCase();
+    const email = cleanEmail(getVal(row, 'POC Email', 'pocEmail', 'Email', 'email'));
+    const website = cleanWebsite(getVal(row, 'Website', 'website', 'URL', 'url'));
 
     // In-batch duplicate check
     if (seenPhones.has(phone)) {
@@ -119,10 +191,8 @@ const processImport = async (records, user, selectedAssigneeId) => {
     if (email) seenEmails.add(email);
 
     // 2. Business Information
-    const companyName = getVal(row, 'Company Name', 'companyName', 'Company', 'company');
     const businessCategory = getVal(row, 'Business Category', 'businessCategory', 'BusinessType', 'businessType', 'Category', 'category');
     const businessSubCategory = getVal(row, 'Sub Category', 'subCategory', 'Business Sub Category', 'businessSubCategory');
-    const website = getVal(row, 'Website', 'website', 'URL', 'url');
     const address = getVal(row, 'Address', 'address');
     const city = getVal(row, 'City', 'city');
     const state = getVal(row, 'State', 'state');
@@ -131,8 +201,6 @@ const processImport = async (records, user, selectedAssigneeId) => {
     const businessDescription = getVal(row, 'Business Description', 'businessDescription', 'Description', 'description');
 
     // 3. Contact Details
-    const pocJobTitle = getVal(row, 'POC Job Title', 'pocJobTitle', 'Job Title', 'jobTitle', 'Designation', 'designation');
-    const alternatePhone = getVal(row, 'POC Alt Phone', 'pocAltPhone', 'Alternate Phone', 'alternatePhone', 'Alt Phone', 'altPhone');
     const pocLinkedIn = getVal(row, 'POC LinkedIn', 'pocLinkedIn', 'LinkedIn', 'linkedin');
     const pocTalkNotes = getVal(row, 'POC Talk Notes', 'pocTalkNotes', 'Talk Notes', 'talkNotes');
 

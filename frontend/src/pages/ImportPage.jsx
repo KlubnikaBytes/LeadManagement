@@ -40,8 +40,21 @@ export const ImportPage = () => {
         formData.append('assignedTo', assignedTo)
       }
       const res = await leadsService.import(formData)
-      setResult(res.data.data)
-      toast.success(`Import complete: ${res.data.data.imported} leads imported successfully!`)
+      const data = res.data.data
+      setResult(data)
+      if (data.imported > 0) {
+        toast.success(`Import complete: ${data.imported} leads imported successfully!`)
+      } else if (data.duplicates > 0 && data.invalid === 0) {
+        toast.error(`0 leads imported: All ${data.duplicates} records are duplicates already in the CRM!`)
+      } else if (data.invalid > 0) {
+        toast.error(`0 leads imported: ${data.invalid} rows failed validation. See details below.`)
+      } else {
+        toast.error('0 leads imported. Please check your spreadsheet file.')
+      }
+      setTimeout(() => {
+        const el = document.getElementById('import-summary-section')
+        if (el) el.scrollIntoView({ behavior: 'smooth' })
+      }, 100)
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to import file')
     } finally {
@@ -209,7 +222,10 @@ Gupta Dental Care,Healthcare,Dental Clinic,https://guptadental.example.com,45 MG
           <div className="space-y-1.5 text-xs">
             <p className="text-kb-cocoa font-medium flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-kb-strawberry inline-block" />
-              Mandatory: <span className="font-mono text-kb-strawberry">POC Name</span>, <span className="font-mono text-kb-strawberry">POC Phone</span>
+              Essential fields: <span className="font-mono text-kb-strawberry">POC Phone</span> (or Alt Phone) and <span className="font-mono text-kb-strawberry">POC Name</span> (or Company Name)
+            </p>
+            <p className="text-kb-muted leading-relaxed">
+              If POC Name is blank, the system automatically uses Company Name or Designation (Reception / Manager).
             </p>
             <p className="text-kb-muted leading-relaxed">
               <span className="font-semibold text-kb-cocoa">Optional fields:</span> Company Name, Business Category, Sub Category, Website, Address, City, State, Country, Pincode, Business Description, POC Job Title, POC Alt Phone, POC Email, POC LinkedIn, POC Talk Notes, Type of Reach, Reach Notes, Status, Priority, Interested In, Estimated Budget, General Notes
@@ -238,11 +254,27 @@ Gupta Dental Care,Healthcare,Dental Clinic,https://guptadental.example.com,45 MG
 
       {/* Results Section */}
       {result && (
-        <div className="card p-5 space-y-4 animate-slide-up">
+        <div id="import-summary-section" className="card p-5 space-y-4 animate-slide-up">
           <div className="flex items-center justify-between pb-2 border-b border-kb-sand">
             <h3 className="section-header">Import Summary</h3>
             <span className="text-xs text-kb-muted">Batch ID: {new Date().toLocaleTimeString()}</span>
           </div>
+
+          {result.imported === 0 && (
+            <div className="p-3.5 bg-kb-lost-bg border border-kb-lost-border rounded-xl flex items-start gap-2.5 text-xs text-kb-crimson">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold">No new leads were added from this file.</p>
+                <p className="mt-0.5 text-kb-text">
+                  {result.duplicates > 0 && result.invalid > 0
+                    ? `${result.duplicates} records already exist in your CRM (duplicate phone) and ${result.invalid} records failed validation.`
+                    : result.duplicates > 0
+                    ? `All ${result.duplicates} records in this file already exist in your CRM database (duplicate phone protection).`
+                    : `${result.invalid} records failed validation. Please review the missing fields listed below.`}
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
