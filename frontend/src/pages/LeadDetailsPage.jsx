@@ -169,17 +169,17 @@ export const LeadDetailsPage = () => {
           <div className="card p-5 space-y-4">
             <div className="flex items-start gap-3.5">
               <div className="w-13 h-13 bg-kb-cocoa rounded-2xl flex items-center justify-center text-kb-coral font-bold text-xl flex-shrink-0 border border-kb-espresso shadow-sm">
-                {lead.name.charAt(0).toUpperCase()}
+                {(lead.companyName || lead.name).charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <h1 className="text-xl font-bold text-kb-cocoa truncate">{lead.name}</h1>
-                {lead.pocJobTitle && (
-                  <p className="text-xs font-semibold text-kb-strawberry mt-0.5">{lead.pocJobTitle}</p>
-                )}
-                <p className="text-sm text-kb-muted flex items-center gap-1.5 mt-1 truncate">
-                  <Building2 className="w-3.5 h-3.5 text-kb-umber flex-shrink-0" />
-                  <span className="font-medium text-kb-text">{lead.companyName || 'No Company Name'}</span>
-                </p>
+                <h1 className="text-xl font-bold text-kb-cocoa truncate">{lead.companyName || lead.name}</h1>
+                <div className="flex items-center gap-1.5 flex-wrap text-sm text-kb-muted mt-1 truncate">
+                  <User className="w-3.5 h-3.5 text-kb-umber flex-shrink-0" />
+                  <span className="font-semibold text-kb-text">{lead.name}</span>
+                  {lead.pocJobTitle && (
+                    <span className="text-xs font-semibold text-kb-strawberry">({lead.pocJobTitle})</span>
+                  )}
+                </div>
               </div>
             </div>
 

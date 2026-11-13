@@ -47,20 +47,20 @@ export const LeadTable = ({ leads, onCall, onDelete, canDelete, loading }) => {
             <div key={lead._id} className="p-4 rounded-xl bg-kb-cream-deep border border-kb-sand space-y-3 hover:border-kb-umber transition-colors">
               <div className="flex items-start justify-between gap-2">
                 <Link to={`/leads/${lead._id}`} className="min-w-0 flex-1 group">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="font-semibold text-kb-cocoa group-hover:text-kb-strawberry transition-colors truncate">{lead.name}</p>
+                  <p className="font-bold text-base text-kb-cocoa group-hover:text-kb-strawberry transition-colors truncate">
+                    {lead.companyName || lead.name || '—'}
+                  </p>
+                  <div className="flex items-center gap-1.5 flex-wrap text-xs text-kb-muted mt-0.5">
+                    <span className="text-kb-text font-medium">{lead.name}</span>
                     {lead.pocJobTitle && (
-                      <span className="text-[11px] text-kb-cocoa bg-kb-white px-1.5 py-0.5 rounded border border-kb-sand font-medium">
+                      <span className="text-[11px] text-kb-cocoa bg-kb-white px-1.5 py-0.5 rounded border border-kb-sand font-medium whitespace-nowrap">
                         {lead.pocJobTitle}
                       </span>
                     )}
-                  </div>
-                  <p className="text-xs text-kb-muted mt-0.5 truncate">
-                    <span className="text-kb-text font-medium">{lead.companyName || '—'}</span>
                     {(lead.businessCategory || lead.businessType) && (
-                      <span className="text-kb-umber"> · {lead.businessCategory || lead.businessType}</span>
+                      <span className="text-kb-umber">· {lead.businessCategory || lead.businessType}</span>
                     )}
-                  </p>
+                  </div>
                 </Link>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
                   {canViewSales ? (
@@ -142,22 +142,22 @@ export const LeadTable = ({ leads, onCall, onDelete, canDelete, loading }) => {
               const canViewSales = lead.canViewSalesSection !== false
               return (
                 <tr key={lead._id}>
-                  <td className="max-w-[230px]">
+                  <td className="max-w-[250px]">
                     <Link to={`/leads/${lead._id}`} className="group block">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <p className="font-semibold text-kb-cocoa group-hover:text-kb-strawberry transition-colors truncate">{lead.name}</p>
+                      <p className="font-bold text-sm text-kb-cocoa group-hover:text-kb-strawberry transition-colors truncate">
+                        {lead.companyName || lead.name || '—'}
+                      </p>
+                      <div className="flex items-center gap-1.5 flex-wrap text-xs text-kb-muted mt-0.5 truncate">
+                        <span className="text-kb-text font-medium">{lead.name}</span>
                         {lead.pocJobTitle && (
                           <span className="text-[11px] text-kb-cocoa bg-kb-cream-deep px-1.5 py-0.5 rounded border border-kb-sand font-medium whitespace-nowrap">
                             {lead.pocJobTitle}
                           </span>
                         )}
-                      </div>
-                      <p className="text-xs text-kb-muted mt-0.5 truncate">
-                        <span className="text-kb-text font-medium">{lead.companyName || '—'}</span>
                         {(lead.businessCategory || lead.businessType) && (
                           <span className="text-kb-umber"> · {lead.businessCategory || lead.businessType}</span>
                         )}
-                      </p>
+                      </div>
                     </Link>
                   </td>
                   <td>
@@ -267,7 +267,7 @@ export const LeadTable = ({ leads, onCall, onDelete, canDelete, loading }) => {
 
 const TableHeader = () => (
   <tr>
-    <th>POC &amp; Business</th>
+    <th>Company &amp; POC</th>
     <th>Contact &amp; Reach</th>
     <th>Status &amp; Priority</th>
     <th>Team</th>

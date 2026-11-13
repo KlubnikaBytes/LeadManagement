@@ -131,9 +131,9 @@ export const FollowUpsPage = () => {
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <Link to={`/leads/${fu.lead?._id}`} className="font-semibold text-kb-cocoa hover:text-kb-strawberry transition-colors">
-                            {fu.lead?.name}
+                            {fu.lead?.companyName || fu.lead?.name}
                           </Link>
-                          {fu.lead?.companyName && <span className="text-kb-muted text-sm ml-2">· {fu.lead.companyName}</span>}
+                          {fu.lead?.companyName && <span className="text-kb-muted text-sm ml-2">· {fu.lead?.name}</span>}
                           <div className="flex items-center gap-3 mt-1 flex-wrap">
                             <span className={`text-xs font-medium ${isOverdue ? 'text-kb-crimson' : 'text-kb-muted'}`}>
                               {isOverdue ? '⚠ ' : ''}{formatDate(fu.followUpDate)}
