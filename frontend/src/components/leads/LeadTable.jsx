@@ -87,6 +87,9 @@ export const LeadTable = ({ leads, onCall, onDelete, canDelete, loading }) => {
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-kb-muted pt-1">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                   <span>Added: <strong className="text-kb-cocoa font-medium">{lead.createdBy?.name || '—'}</strong></span>
+                  {lead.assignedByName && (
+                    <span>By: <strong className="text-kb-strawberry font-medium">{lead.assignedByName}</strong></span>
+                  )}
                   {lead.primaryAssignedTo && lead.primaryAssignedTo._id !== lead.assignedTo?._id && (
                     <span>Primary: <strong className="text-kb-strawberry font-medium">{lead.primaryAssignedTo.name}</strong></span>
                   )}
@@ -193,6 +196,12 @@ export const LeadTable = ({ leads, onCall, onDelete, canDelete, loading }) => {
                           </span>
                         ) : <span className="text-kb-taupe">—</span>}
                       </div>
+                      {lead.assignedByName && (
+                        <div className="flex items-center gap-1.5 whitespace-nowrap">
+                          <span className="text-kb-muted">By:</span>
+                          <span className="text-kb-strawberry font-medium">{lead.assignedByName}</span>
+                        </div>
+                      )}
                       {lead.primaryAssignedTo && lead.primaryAssignedTo._id !== lead.assignedTo?._id && (
                         <div className="flex items-center gap-1.5 whitespace-nowrap">
                           <span className="text-kb-muted">Primary:</span>

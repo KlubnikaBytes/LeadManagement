@@ -49,6 +49,8 @@ const leadSchema = new mongoose.Schema(
       default: 'MEDIUM',
     },
     assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
+    assignedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    assignedByName: { type: String, trim: true },
     primaryAssignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
     primaryAssignedAt: { type: Date },
     reassignedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

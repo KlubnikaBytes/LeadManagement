@@ -192,17 +192,28 @@ const createLead = async (data, user) => {
   });
 
   const leadPayload = { ...data, createdBy: userId };
-  if (leadPayload.assignedTo) {
-    leadPayload.primaryAssignedTo = leadPayload.primaryAssignedTo || leadPayload.assignedTo;
-    leadPayload.primaryAssignedAt = new Date();
-    leadPayload.assignmentHistory = [
-      {
-        assignedTo: leadPayload.assignedTo,
-        assignedBy: userId,
-        type: 'PRIMARY',
-        assignedAt: new Date(),
-      },
-    ];
+  if (userRole === 'ADMIN') {
+    if (leadPayload.assignedTo) {
+      leadPayload.primaryAssignedTo = leadPayload.primaryAssignedTo || leadPayload.assignedTo;
+      leadPayload.primaryAssignedAt = new Date();
+      leadPayload.assignedBy = userId;
+      leadPayload.assignedByName = data.assignedByName || '';
+      leadPayload.assignmentHistory = [
+        {
+          assignedTo: leadPayload.assignedTo,
+          assignedBy: userId,
+          type: 'PRIMARY',
+          assignedAt: new Date(),
+          note: data.assignedByName ? `Assigned by ${data.assignedByName}` : undefined,
+        },
+      ];
+    }
+  } else {
+    // Non-admins cannot assign leads
+    delete leadPayload.assignedTo;
+    delete leadPayload.primaryAssignedTo;
+    delete leadPayload.assignedBy;
+    delete leadPayload.assignedByName;
   }
 
   const lead = await Lead.create(leadPayload);
@@ -245,9 +256,11 @@ const updateLead = async (id, data, userId, userRole) => {
     throw Object.assign(new Error('Not authorized to update this lead'), { statusCode: 403 });
   }
 
-  if (userRole === 'SALES_EXECUTIVE') {
+  if (userRole !== 'ADMIN') {
     delete data.assignedTo;
     delete data.primaryAssignedTo;
+    delete data.assignedBy;
+    delete data.assignedByName;
   }
 
   if (data.assignedTo === '') {
@@ -283,7 +296,11 @@ const updateLead = async (id, data, userId, userRole) => {
     }
   }
 
-  if (incomingAssignedTo && incomingAssignedTo.toString() !== oldAssignedTo) {
+  if (userRole === 'ADMIN' && data.assignedByName !== undefined) {
+    lead.assignedByName = data.assignedByName;
+  }
+
+  if (userRole === 'ADMIN' && incomingAssignedTo && incomingAssignedTo.toString() !== oldAssignedTo) {
     const isPrimary = !lead.primaryAssignedTo;
     if (isPrimary) {
       lead.primaryAssignedTo = incomingAssignedTo;
@@ -292,12 +309,14 @@ const updateLead = async (id, data, userId, userRole) => {
       lead.reassignedBy = userId;
       lead.reassignedAt = new Date();
     }
+    lead.assignedBy = userId;
     lead.assignmentHistory = lead.assignmentHistory || [];
     lead.assignmentHistory.push({
       assignedTo: incomingAssignedTo,
       assignedBy: userId,
       type: isPrimary ? 'PRIMARY' : 'REASSIGN',
       assignedAt: new Date(),
+      note: data.assignedByName ? `Assigned by ${data.assignedByName}` : undefined,
     });
 
     await createActivity({
@@ -364,7 +383,7 @@ const changeLeadStatus = async (id, status, user, extra = {}) => {
   return lead;
 };
 
-const assignLead = async (id, assignedTo, userId, note = '') => {
+const assignLead = async (id, assignedTo, userId, note = '', assignedByName = '') => {
   const lead = await Lead.findOne({ _id: id, isDeleted: false });
   if (!lead) throw Object.assign(new Error('Lead not found'), { statusCode: 404 });
 
@@ -380,13 +399,18 @@ const assignLead = async (id, assignedTo, userId, note = '') => {
     lead.reassignedAt = new Date();
   }
 
+  lead.assignedBy = userId;
+  if (assignedByName) {
+    lead.assignedByName = assignedByName;
+  }
+
   lead.assignmentHistory = lead.assignmentHistory || [];
   lead.assignmentHistory.push({
     assignedTo,
     assignedBy: userId,
     type: isPrimary ? 'PRIMARY' : 'REASSIGN',
     assignedAt: new Date(),
-    note: note || undefined,
+    note: assignedByName ? `Assigned by ${assignedByName}: ${note || ''}`.trim() : (note || undefined),
   });
 
   await lead.save();

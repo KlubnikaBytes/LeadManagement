@@ -197,6 +197,7 @@ export const LeadFormPage = () => {
     priority: 'MEDIUM',
     status: 'NEW',
     assignedTo: '',
+    assignedByName: '',
     nextFollowUpAt: '',
     notes: '',
   })
@@ -204,6 +205,7 @@ export const LeadFormPage = () => {
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [salesUsers, setSalesUsers] = useState([])
+  const [isCustomAssigner, setIsCustomAssigner] = useState(false)
   const [duplicate, setDuplicate] = useState(null)
   const [loadingLead, setLoadingLead] = useState(isEdit)
   const [dynamicOptions, setDynamicOptions] = useState({
@@ -261,9 +263,22 @@ export const LeadFormPage = () => {
     return Array.from(new Set([...staticSubs, ...dynamicSubs]))
   }, [form.businessCategory, dynamicOptions.subCategoriesByCategory])
 
+  const managerOptions = useMemo(() => {
+    const list = []
+    if (user?.name) {
+      list.push({ label: `${user.name} (You)`, value: user.name })
+    }
+    salesUsers.forEach(u => {
+      if (u.name && u.name !== user?.name) {
+        list.push({ label: `${u.name} (${u.role?.replace('_', ' ')})`, value: u.name })
+      }
+    })
+    return list
+  }, [salesUsers, user])
+
   useEffect(() => {
     fetchDynamicOptions()
-    if (isAdmin || isTeamLeader) {
+    if (isAdmin) {
       usersService.getSalesUsers().then(res => setSalesUsers(res.data.data)).catch(() => {})
     }
     if (isEdit) {
@@ -275,6 +290,10 @@ export const LeadFormPage = () => {
           return
         }
         setLeadMeta(lead)
+        const currentAssignedByName = lead.assignedByName || (lead.assignedBy?.name || '')
+        if (currentAssignedByName) {
+          setIsCustomAssigner(true)
+        }
         setForm({
           // 1. Business Info
           companyName: lead.companyName || '',
@@ -307,6 +326,7 @@ export const LeadFormPage = () => {
           priority: lead.priority || 'MEDIUM',
           status: lead.status || 'NEW',
           assignedTo: lead.assignedTo?._id || '',
+          assignedByName: currentAssignedByName,
           nextFollowUpAt: lead.nextFollowUpAt ? new Date(lead.nextFollowUpAt).toISOString().slice(0, 16) : '',
           notes: lead.notes || '',
         })
@@ -747,8 +767,8 @@ export const LeadFormPage = () => {
               </div>
             </FormGroup>
 
-            {(isAdmin || isTeamLeader) && (
-              <div className="space-y-2">
+            {isAdmin ? (
+              <div className="space-y-4">
                 <FormGroup
                   label={
                     isEdit && leadMeta?.primaryAssignedTo
@@ -769,12 +789,64 @@ export const LeadFormPage = () => {
                     ))}
                   </select>
                 </FormGroup>
+
+                {/* Assigned By (Manager / Admin) Section */}
+                <FormGroup label="Assigned By (Manager / Admin)">
+                  <div className="space-y-2">
+                    <select
+                      className="input"
+                      value={
+                        !form.assignedByName
+                          ? ''
+                          : managerOptions.some(m => m.value === form.assignedByName) && !isCustomAssigner
+                          ? form.assignedByName
+                          : '__OTHER__'
+                      }
+                      onChange={e => {
+                        const val = e.target.value
+                        if (val === '__OTHER__') {
+                          setIsCustomAssigner(true)
+                        } else {
+                          setIsCustomAssigner(false)
+                          handleChange('assignedByName', val)
+                        }
+                      }}
+                    >
+                      <option value="">Select Manager / Assigner (Optional)</option>
+                      {managerOptions.map(m => (
+                        <option key={m.value} value={m.value}>{m.label}</option>
+                      ))}
+                      <option value="__OTHER__" className="font-semibold text-kb-strawberry">+ Other (Type custom name...)</option>
+                    </select>
+
+                    {(isCustomAssigner || (form.assignedByName && !managerOptions.some(m => m.value === form.assignedByName))) && (
+                      <input
+                        type="text"
+                        autoFocus
+                        className="input text-sm"
+                        placeholder="Type manager or assigner name (e.g. Rajesh Sharma, Sales Head)..."
+                        value={form.assignedByName}
+                        onChange={e => handleChange('assignedByName', e.target.value)}
+                      />
+                    )}
+                  </div>
+                  <p className="text-[11px] text-kb-muted mt-1">
+                    Select a manager from the team or choose Other to type a custom name.
+                  </p>
+                </FormGroup>
+
                 {isEdit && leadMeta ? (
                   <div className="rounded-xl bg-kb-cream-deep border border-kb-sand p-2.5 text-xs text-kb-muted space-y-1">
                     <div className="flex items-center justify-between gap-2">
                       <span>Created By:</span>
                       <span className="text-kb-cocoa font-medium">{leadMeta.createdBy?.name || 'System'}</span>
                     </div>
+                    {leadMeta.assignedByName && (
+                      <div className="flex items-center justify-between gap-2">
+                        <span>Assigned By:</span>
+                        <span className="text-kb-strawberry font-medium">{leadMeta.assignedByName}</span>
+                      </div>
+                    )}
                     <div className="flex items-center justify-between gap-2">
                       <span>Primary Assigned:</span>
                       <span className="text-kb-strawberry font-medium">
@@ -790,9 +862,26 @@ export const LeadFormPage = () => {
                   </div>
                 ) : (
                   <p className="text-[11px] text-kb-muted">
-                    First assignee is saved as Primary Assigned; managers can reassign anytime.
+                    First assignee is saved as Primary Assigned; only administrators can assign or reassign leads.
                   </p>
                 )}
+              </div>
+            ) : (
+              <div className="rounded-xl bg-kb-cream-deep border border-kb-sand p-3.5 text-xs text-kb-muted space-y-2">
+                <p className="font-semibold text-kb-cocoa text-xs uppercase tracking-wider">Assignment Status</p>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-kb-muted">Assigned To:</span>
+                  <span className="text-kb-cocoa font-semibold">{leadMeta?.assignedTo?.name || 'Unassigned'}</span>
+                </div>
+                {leadMeta?.assignedByName && (
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-kb-muted">Assigned By:</span>
+                    <span className="text-kb-strawberry font-semibold">{leadMeta.assignedByName}</span>
+                  </div>
+                )}
+                <p className="text-[11px] text-kb-umber italic pt-1 border-t border-kb-sand">
+                  * Only administrators have permission to assign or reassign leads.
+                </p>
               </div>
             )}
           </div>

@@ -300,6 +300,12 @@ export const LeadDetailsPage = () => {
               <span className="text-kb-muted">Created By</span>
               <span className="text-kb-cocoa font-medium">{lead.createdBy?.name || 'System'}</span>
             </div>
+            {lead.assignedByName && (
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-kb-muted">Assigned By</span>
+                <span className="text-kb-strawberry font-medium">{lead.assignedByName}</span>
+              </div>
+            )}
             <div className="flex items-center justify-between gap-2">
               <span className="text-kb-muted">Primary Assigned</span>
               <span className="text-kb-strawberry font-medium">

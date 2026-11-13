@@ -8,6 +8,8 @@ import toast from 'react-hot-toast'
 export const AssignModal = ({ isOpen, onClose, lead, onSuccess }) => {
   const [users, setUsers] = useState([])
   const [selectedUser, setSelectedUser] = useState('')
+  const [assignedByName, setAssignedByName] = useState('')
+  const [isCustomAssigner, setIsCustomAssigner] = useState(false)
   const [note, setNote] = useState('')
   const [loading, setLoading] = useState(false)
   const [loadingUsers, setLoadingUsers] = useState(false)
@@ -18,6 +20,9 @@ export const AssignModal = ({ isOpen, onClose, lead, onSuccess }) => {
     if (isOpen) {
       setLoadingUsers(true)
       setNote('')
+      const existingAssigner = lead?.assignedByName || ''
+      setAssignedByName(existingAssigner)
+      setIsCustomAssigner(Boolean(existingAssigner))
       usersService.getSalesUsers().then(res => {
         setUsers(res.data.data)
         setSelectedUser(lead?.assignedTo?._id || '')
@@ -31,6 +36,7 @@ export const AssignModal = ({ isOpen, onClose, lead, onSuccess }) => {
     try {
       await leadsService.assign(lead._id, {
         assignedTo: selectedUser,
+        ...(assignedByName.trim() ? { assignedByName: assignedByName.trim() } : {}),
         ...(note.trim() ? { note: note.trim() } : {}),
       })
       toast.success(isReassign ? 'Lead reassigned successfully!' : 'Primary assignee saved!')
@@ -84,6 +90,44 @@ export const AssignModal = ({ isOpen, onClose, lead, onSuccess }) => {
               {selectedUser === u._id && <span className="ml-auto text-kb-strawberry font-bold">✓</span>}
             </button>
           ))
+        )}
+      </div>
+
+      <div className="mt-3">
+        <label className="label text-xs">Assigned By (Manager / Admin)</label>
+        <select
+          className="input text-xs py-1.5"
+          value={
+            !assignedByName
+              ? ''
+              : users.some(u => u.name === assignedByName) && !isCustomAssigner
+              ? assignedByName
+              : '__OTHER__'
+          }
+          onChange={e => {
+            const val = e.target.value
+            if (val === '__OTHER__') {
+              setIsCustomAssigner(true)
+            } else {
+              setIsCustomAssigner(false)
+              setAssignedByName(val)
+            }
+          }}
+        >
+          <option value="">Select Manager / Assigner (Optional)</option>
+          {users.map(u => (
+            <option key={u._id} value={u.name}>{u.name} ({u.role?.replace('_', ' ')})</option>
+          ))}
+          <option value="__OTHER__" className="font-semibold text-kb-strawberry">+ Other (Type custom name...)</option>
+        </select>
+        {(isCustomAssigner || (assignedByName && !users.some(u => u.name === assignedByName))) && (
+          <input
+            type="text"
+            className="input text-xs py-1.5 mt-1.5"
+            placeholder="Type manager name (e.g. Sales Manager, Rajesh)..."
+            value={assignedByName}
+            onChange={e => setAssignedByName(e.target.value)}
+          />
         )}
       </div>
 

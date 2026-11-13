@@ -146,9 +146,9 @@ const changeStatus = async (req, res, next) => {
 
 const assignLead = async (req, res, next) => {
   try {
-    const { assignedTo, note } = req.body;
+    const { assignedTo, note, assignedByName } = req.body;
     if (!assignedTo) return res.status(400).json({ success: false, message: 'assignedTo is required' });
-    const lead = await leadService.assignLead(req.params.id, assignedTo, req.user._id, note);
+    const lead = await leadService.assignLead(req.params.id, assignedTo, req.user._id, note, assignedByName);
     req.app.get('io')?.emit('lead_updated');
     res.json({ success: true, data: lead });
   } catch (err) {

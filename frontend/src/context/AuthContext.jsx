@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }) => {
   const canManageUsers = isAdmin
   const canImport = !!user
   const canDelete = isAdmin
-  const canAssign = isAdmin || isTeamLeader
+  const canAssign = isAdmin
 
   return (
     <AuthContext.Provider value={{ user, loading, initializing, login, signup, logout, isAdmin, isTeamLeader, isSalesExec, canManageUsers, canImport, canDelete, canAssign }}>

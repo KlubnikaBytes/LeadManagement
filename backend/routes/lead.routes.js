@@ -32,7 +32,7 @@ router.route('/:id')
   .delete(authorize('ADMIN'), deleteLead);
 
 router.patch('/:id/status', changeStatus);
-router.patch('/:id/assign', authorize('ADMIN', 'TEAM_LEADER'), assignLead);
+router.patch('/:id/assign', authorize('ADMIN'), assignLead);
 
 router.post('/:leadId/calls', logCall);
 router.get('/:leadId/calls', getCallsByLead);
