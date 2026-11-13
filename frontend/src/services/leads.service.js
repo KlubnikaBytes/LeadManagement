@@ -11,6 +11,7 @@ export const leadsService = {
   changeStatus: (id, data) => api.patch(`/leads/${id}/status`, data),
   assign: (id, data) => api.patch(`/leads/${id}/assign`, data),
   checkDuplicate: (params) => api.get('/leads/check-duplicate', { params }),
+  searchCompanies: (query) => api.get('/leads/companies/search', { params: { q: query } }),
   import: (formData) => api.post('/leads/import', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   downloadTemplate: () => api.get('/leads/import-template', { responseType: 'blob' }),
   export: (params) => api.get('/leads/export', { params, responseType: 'blob' }),

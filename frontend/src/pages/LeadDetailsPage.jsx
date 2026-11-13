@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   Phone, Mail, Globe, MapPin, Calendar, Edit, ArrowLeft, Building2, User,
-  Clock, Tag, DollarSign, Send, Briefcase, ExternalLink, MessageSquare, Lock, UserCheck
+  Clock, Tag, DollarSign, Send, Briefcase, ExternalLink, MessageSquare, Lock, UserCheck,
+  Users, Plus
 } from 'lucide-react'
 
 const LinkedinIcon = ({ className = "w-4 h-4" }) => (
@@ -324,6 +325,81 @@ export const LeadDetailsPage = () => {
             )}
           </div>
 
+          {/* Company POCs & Contacts Card */}
+          {lead.companyName && (
+            <div className="card p-4 space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-kb-sand">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-kb-strawberry" />
+                  <h3 className="font-semibold text-sm text-kb-cocoa">
+                    Company Contacts ({lead.companyPocs?.length || 1})
+                  </h3>
+                </div>
+                <Link
+                  to={`/leads/new?company=${encodeURIComponent(lead.companyName)}`}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-kb-strawberry hover:text-kb-strawberry-hover hover:underline"
+                  title="Add another POC for this company"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add POC</span>
+                </Link>
+              </div>
+
+              <div className="space-y-2 max-h-72 overflow-y-auto">
+                {(lead.companyPocs && lead.companyPocs.length > 0 ? lead.companyPocs : [lead]).map((poc) => {
+                  const isCurrent = poc._id === lead._id
+                  return (
+                    <div
+                      key={poc._id}
+                      className={`p-2.5 rounded-xl border transition-all ${
+                        isCurrent
+                          ? 'bg-kb-strawberry-tint/60 border-kb-strawberry/40 shadow-xs'
+                          : 'bg-kb-cream-deep/60 hover:bg-kb-cream border-kb-sand/80'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {isCurrent ? (
+                              <span className="font-bold text-sm text-kb-cocoa truncate">{poc.name}</span>
+                            ) : (
+                              <Link
+                                to={`/leads/${poc._id}`}
+                                className="font-bold text-sm text-kb-cocoa hover:text-kb-strawberry hover:underline truncate"
+                              >
+                                {poc.name}
+                              </Link>
+                            )}
+                            {isCurrent && (
+                              <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-kb-strawberry text-white">
+                                Current
+                              </span>
+                            )}
+                          </div>
+                          {poc.pocJobTitle && (
+                            <p className="text-xs text-kb-muted mt-0.5 truncate">{poc.pocJobTitle}</p>
+                          )}
+                          {poc.phone && (
+                            <p className="text-xs font-mono text-kb-text-muted mt-0.5 truncate">📞 {poc.phone}</p>
+                          )}
+                        </div>
+
+                        {!isCurrent && (
+                          <Link
+                            to={`/leads/${poc._id}`}
+                            className="btn-secondary text-[11px] py-1 px-2.5 flex-shrink-0"
+                          >
+                            View
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Action Operations */}
           {canViewSales && (
             <div className="card p-4 space-y-2">
@@ -500,6 +576,39 @@ export const LeadDetailsPage = () => {
                         2. Point of Contact (POC) Details
                       </h3>
                     </div>
+
+                    {lead.companyPocs && lead.companyPocs.length > 1 && (
+                      <div className="p-3 bg-kb-cream-deep rounded-xl border border-kb-sand flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 flex-wrap text-xs">
+                          <span className="font-semibold text-kb-cocoa">Switch POC:</span>
+                          {lead.companyPocs.map((poc) => {
+                            const isCurrent = poc._id === lead._id
+                            return isCurrent ? (
+                              <span
+                                key={poc._id}
+                                className="px-2.5 py-1 rounded-full text-xs font-bold bg-kb-strawberry text-white shadow-xs"
+                              >
+                                {poc.name} {poc.pocJobTitle ? `(${poc.pocJobTitle})` : ''}
+                              </span>
+                            ) : (
+                              <Link
+                                key={poc._id}
+                                to={`/leads/${poc._id}`}
+                                className="px-2.5 py-1 rounded-full text-xs font-medium bg-kb-white hover:bg-kb-cream text-kb-cocoa border border-kb-sand hover:border-kb-strawberry transition-colors"
+                              >
+                                {poc.name} {poc.pocJobTitle ? `(${poc.pocJobTitle})` : ''}
+                              </Link>
+                            )
+                          })}
+                        </div>
+                        <Link
+                          to={`/leads/new?company=${encodeURIComponent(lead.companyName)}`}
+                          className="text-xs font-semibold text-kb-strawberry hover:underline inline-flex items-center gap-1"
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Add Another POC
+                        </Link>
+                      </div>
+                    )}
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <DetailItem icon={User} label="POC Full Name" value={lead.name} />

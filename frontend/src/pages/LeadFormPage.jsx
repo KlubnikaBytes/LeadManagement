@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Save, AlertCircle, Building2, User, Send, Briefcase, Globe, Phone, Mail, MapPin, MessageSquare } from 'lucide-react'
+import { useState, useEffect, useMemo, useRef } from 'react'
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
+import { ArrowLeft, Save, AlertCircle, Building2, User, Send, Briefcase, Globe, Phone, Mail, MapPin, MessageSquare, CheckCircle2, Search, X } from 'lucide-react'
 import { Country, State, City } from 'country-state-city'
-import { useMemo } from 'react'
 import { leadsService } from '../services/leads.service'
 import { usersService } from '../services/users.service'
 import { useAuth } from '../context/AuthContext'
@@ -208,6 +207,12 @@ export const LeadFormPage = () => {
   const [isCustomAssigner, setIsCustomAssigner] = useState(false)
   const [duplicate, setDuplicate] = useState(null)
   const [loadingLead, setLoadingLead] = useState(isEdit)
+  const [searchParams] = useSearchParams()
+  const [companySuggestions, setCompanySuggestions] = useState([])
+  const [searchingCompanies, setSearchingCompanies] = useState(false)
+  const [showCompanySuggestions, setShowCompanySuggestions] = useState(false)
+  const [selectedCompanyMeta, setSelectedCompanyMeta] = useState(null)
+  const companyInputWrapperRef = useRef(null)
   const [dynamicOptions, setDynamicOptions] = useState({
     sources: [],
     businessCategories: [],
@@ -262,6 +267,76 @@ export const LeadFormPage = () => {
     const dynamicSubs = dynamicOptions.subCategoriesByCategory?.[form.businessCategory] || []
     return Array.from(new Set([...staticSubs, ...dynamicSubs]))
   }, [form.businessCategory, dynamicOptions.subCategoriesByCategory])
+
+  const handleSelectCompany = (comp) => {
+    setSelectedCompanyMeta(comp)
+    setShowCompanySuggestions(false)
+    setForm(prev => ({
+      ...prev,
+      companyName: comp.companyName,
+      website: comp.website || prev.website,
+      businessCategory: comp.businessCategory || prev.businessCategory,
+      businessSubCategory: comp.businessSubCategory || prev.businessSubCategory,
+      address: comp.address || prev.address,
+      country: comp.country || prev.country || 'India',
+      state: comp.state || prev.state,
+      city: comp.city || prev.city,
+      pincode: comp.pincode || prev.pincode,
+      businessDescription: comp.businessDescription || prev.businessDescription,
+    }))
+    if (errors.companyName) setErrors(prev => ({ ...prev, companyName: '' }))
+    toast.success(`Autofilled credentials for ${comp.companyName}`)
+  }
+
+  // Click outside listener for company autocomplete dropdown
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (companyInputWrapperRef.current && !companyInputWrapperRef.current.contains(e.target)) {
+        setShowCompanySuggestions(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  // Debounced search for companies when typing company name
+  useEffect(() => {
+    const q = form.companyName?.trim()
+    if (!q || q.length < 1 || selectedCompanyMeta?.companyName === q) {
+      setCompanySuggestions([])
+      return
+    }
+
+    const timer = setTimeout(async () => {
+      setSearchingCompanies(true)
+      try {
+        const res = await leadsService.searchCompanies(q)
+        setCompanySuggestions(res.data.data || [])
+        setShowCompanySuggestions(true)
+      } catch {
+        setCompanySuggestions([])
+      } finally {
+        setSearchingCompanies(false)
+      }
+    }, 200)
+
+    return () => clearTimeout(timer)
+  }, [form.companyName, selectedCompanyMeta])
+
+  // Support pre-populating from ?company= query param (e.g. Add Another POC)
+  useEffect(() => {
+    const companyParam = searchParams.get('company')
+    if (companyParam && !isEdit) {
+      leadsService.searchCompanies(companyParam).then(res => {
+        const match = res.data.data?.find(c => c.companyName.toLowerCase() === companyParam.toLowerCase()) || res.data.data?.[0]
+        if (match) {
+          handleSelectCompany(match)
+        } else {
+          setForm(prev => ({ ...prev, companyName: companyParam }))
+        }
+      }).catch(() => {})
+    }
+  }, [searchParams, isEdit])
 
   const managerOptions = useMemo(() => {
     const list = []
@@ -446,13 +521,88 @@ export const LeadFormPage = () => {
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormGroup label="Company / Business Name" required error={errors.companyName}>
-              <input
-                type="text"
-                className={`input ${errors.companyName ? 'border-kb-crimson' : ''}`}
-                placeholder="e.g. Acme Tech Solutions, Green Foods Pvt Ltd"
-                value={form.companyName}
-                onChange={e => handleChange('companyName', e.target.value)}
-              />
+              <div ref={companyInputWrapperRef} className="relative">
+                <input
+                  type="text"
+                  className={`input ${errors.companyName ? 'border-kb-crimson' : ''}`}
+                  placeholder="Type company name (matches existing businesses)..."
+                  value={form.companyName}
+                  onFocus={() => {
+                    if (companySuggestions.length > 0) setShowCompanySuggestions(true)
+                  }}
+                  onChange={e => {
+                    handleChange('companyName', e.target.value)
+                    if (selectedCompanyMeta && e.target.value !== selectedCompanyMeta.companyName) {
+                      setSelectedCompanyMeta(null)
+                    }
+                  }}
+                />
+
+                {/* Autocomplete Suggestions Dropdown */}
+                {showCompanySuggestions && companySuggestions.length > 0 && (
+                  <div className="absolute left-0 right-0 top-full mt-1.5 bg-kb-white border border-kb-sand rounded-xl shadow-2xl z-40 max-h-72 overflow-y-auto divide-y divide-kb-sand animate-slide-up">
+                    <div className="p-2.5 bg-kb-cream-deep text-[11px] font-semibold text-kb-muted uppercase tracking-wider flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <Building2 className="w-3.5 h-3.5 text-kb-strawberry" />
+                        Existing Companies Found
+                      </span>
+                      <span className="text-[10px] text-kb-strawberry font-medium">Click to autofill credentials</span>
+                    </div>
+                    {companySuggestions.map((comp, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleSelectCompany(comp)}
+                        className="w-full text-left p-3 hover:bg-kb-cream-deep transition-colors flex items-start gap-3 group"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-kb-cream border border-kb-sand flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:border-kb-strawberry transition-colors">
+                          <Building2 className="w-4 h-4 text-kb-strawberry" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="font-semibold text-sm text-kb-cocoa group-hover:text-kb-strawberry transition-colors truncate">
+                              {comp.companyName}
+                            </p>
+                            {comp.pocs?.length > 0 && (
+                              <span className="text-[10px] bg-kb-strawberry-tint text-kb-strawberry font-bold px-1.5 py-0.5 rounded border border-kb-strawberry/20 whitespace-nowrap">
+                                {comp.pocs.length} POC{comp.pocs.length > 1 ? 's' : ''}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-kb-muted mt-0.5 truncate">
+                            {[comp.businessCategory, comp.city, comp.state].filter(Boolean).join(' · ') || 'No category / city set'}
+                            {comp.website && ` · ${comp.website}`}
+                          </p>
+                          {comp.pocs?.length > 0 && (
+                            <p className="text-[11px] text-kb-umber mt-1 truncate">
+                              Contacts: {comp.pocs.map(p => `${p.name}${p.pocJobTitle ? ` (${p.pocJobTitle})` : ''}`).join(', ')}
+                            </p>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Informational Autofill Banner */}
+              {selectedCompanyMeta && (
+                <div className="p-3 bg-kb-cream-deep border border-kb-sand rounded-xl flex items-center justify-between text-xs mt-2.5 animate-fade-in">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <CheckCircle2 className="w-4 h-4 text-kb-won-fg flex-shrink-0" />
+                    <span className="truncate text-kb-cocoa">
+                      Linked to existing business: <strong className="font-semibold">{selectedCompanyMeta.companyName}</strong> ({selectedCompanyMeta.pocs?.length || 0} existing contact{selectedCompanyMeta.pocs?.length > 1 ? 's' : ''})
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCompanyMeta(null)}
+                    className="text-kb-crimson hover:underline text-[11px] font-semibold ml-2 flex-shrink-0"
+                  >
+                    Disconnect
+                  </button>
+                </div>
+              )}
             </FormGroup>
 
             <FormGroup label="Website URL">

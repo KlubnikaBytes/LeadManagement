@@ -141,7 +141,39 @@ const getLeads = async (query, user) => {
     Lead.countDocuments(filter),
   ]);
 
-  const leads = rawLeads.map((l) => sanitizeLeadForUser(l, user));
+  const companyNames = Array.from(
+    new Set(rawLeads.map((l) => (l.companyName ? l.companyName.trim() : '')).filter(Boolean))
+  );
+
+  const companyPocsMap = new Map();
+  if (companyNames.length > 0) {
+    const siblings = await Lead.find({
+      companyName: { $in: companyNames },
+      isDeleted: false,
+    })
+      .populate('assignedTo', 'name email avatar role')
+      .populate('createdBy', 'name email avatar role')
+      .sort({ createdAt: 1 })
+      .lean();
+
+    for (const sib of siblings) {
+      if (!sib.companyName) continue;
+      const key = sib.companyName.trim().toLowerCase();
+      if (!companyPocsMap.has(key)) companyPocsMap.set(key, []);
+      companyPocsMap.get(key).push(sanitizeLeadForUser(sib, user));
+    }
+  }
+
+  const leads = rawLeads.map((l) => {
+    const sanitized = sanitizeLeadForUser(l, user);
+    if (l.companyName && l.companyName.trim()) {
+      const key = l.companyName.trim().toLowerCase();
+      sanitized.companyPocs = companyPocsMap.get(key) || [sanitized];
+    } else {
+      sanitized.companyPocs = [sanitized];
+    }
+    return sanitized;
+  });
 
   return {
     data: leads,
@@ -162,7 +194,23 @@ const getLeadById = async (id, user) => {
     .populate('assignmentHistory.assignedBy', 'name email role');
 
   if (!lead) throw Object.assign(new Error('Lead not found'), { statusCode: 404 });
-  return sanitizeLeadForUser(lead, user);
+  
+  const leadObj = sanitizeLeadForUser(lead.toObject ? lead.toObject() : lead, user);
+  if (lead.companyName && lead.companyName.trim()) {
+    const siblings = await Lead.find({
+      companyName: lead.companyName.trim(),
+      isDeleted: false,
+    })
+      .populate('assignedTo', 'name email avatar role')
+      .populate('createdBy', 'name email avatar role')
+      .sort({ createdAt: 1 })
+      .lean();
+
+    leadObj.companyPocs = siblings.map((s) => sanitizeLeadForUser(s, user));
+  } else {
+    leadObj.companyPocs = [leadObj];
+  }
+  return leadObj;
 };
 
 const createLead = async (data, user) => {

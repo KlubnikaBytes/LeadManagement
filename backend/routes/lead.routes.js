@@ -6,7 +6,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 
 const { protect, authorize } = require('../middleware/auth.middleware');
 const {
   getLeads, getOptions, addOption, getLead, createLead, updateLead, deleteLead,
-  changeStatus, assignLead, checkDuplicate, importLeads, exportLeads, getImportTemplate,
+  changeStatus, assignLead, checkDuplicate, importLeads, exportLeads, getImportTemplate, searchCompanies,
 } = require('../controllers/lead.controller');
 const { logCall, getCallsByLead } = require('../controllers/call.controller');
 const { createFollowUp } = require('../controllers/followup.controller');
@@ -17,6 +17,7 @@ router.use(protect);
 
 router.get('/options', getOptions);
 router.post('/options', authorize('ADMIN'), addOption);
+router.get('/companies/search', searchCompanies);
 router.get('/check-duplicate', checkDuplicate);
 router.get('/export', exportLeads);
 router.get('/import-template', getImportTemplate);
