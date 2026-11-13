@@ -1,11 +1,56 @@
 const Lead = require('../models/Lead.model');
 const { createActivity } = require('../utils/helpers');
 
-const VALID_SOURCES = ['Cold Call','Instagram','Facebook','LinkedIn','Google','Website','Referral','WhatsApp','Email','Justdial','IndiaMART','Naukri','Manual Entry','Other'];
-const VALID_STATUSES = ['NEW','CONTACTED','INTERESTED','CALL_LATER','FOLLOW_UP','NOT_INTERESTED','CONVERTED','LOST'];
-const VALID_PRIORITIES = ['LOW','MEDIUM','HIGH','URGENT'];
+const VALID_STATUSES = ['NEW', 'CONTACTED', 'INTERESTED', 'CALL_LATER', 'FOLLOW_UP', 'NOT_INTERESTED', 'CONVERTED', 'LOST'];
+const VALID_PRIORITIES = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
 
-const processImport = async (records, userId, assignedTo) => {
+// Robust value extractor matching various header naming styles
+const getVal = (row, ...keys) => {
+  for (const k of keys) {
+    if (row[k] !== undefined && row[k] !== null && String(row[k]).trim() !== '') {
+      return String(row[k]).trim();
+    }
+  }
+  const rowKeys = Object.keys(row);
+  for (const k of keys) {
+    const cleanK = k.toLowerCase().replace(/[\s_\-]/g, '');
+    const found = rowKeys.find(rk => rk.toLowerCase().replace(/[\s_\-]/g, '') === cleanK);
+    if (found && row[found] !== undefined && row[found] !== null && String(row[found]).trim() !== '') {
+      return String(row[found]).trim();
+    }
+  }
+  return '';
+};
+
+const normalizeStatus = (raw) => {
+  if (!raw) return 'NEW';
+  const clean = raw.toString().trim().toUpperCase().replace(/\s+/g, '_');
+  if (VALID_STATUSES.includes(clean)) return clean;
+  if (clean === 'WON') return 'CONVERTED';
+  return 'NEW';
+};
+
+const normalizePriority = (raw) => {
+  if (!raw) return 'MEDIUM';
+  const clean = raw.toString().trim().toUpperCase();
+  if (VALID_PRIORITIES.includes(clean)) return clean;
+  return 'MEDIUM';
+};
+
+const processImport = async (records, user, selectedAssigneeId) => {
+  const userId = user?._id || user;
+  const userRole = user?.role;
+
+  // Determine effective assignee:
+  // If user is SALES_EXECUTIVE, automatically assign to themselves.
+  // If ADMIN or TEAM_LEADER, use selectedAssigneeId if provided.
+  let effectiveAssignedTo = null;
+  if (userRole === 'SALES_EXECUTIVE') {
+    effectiveAssignedTo = userId;
+  } else if (selectedAssigneeId) {
+    effectiveAssignedTo = selectedAssigneeId;
+  }
+
   const results = {
     total: records.length,
     valid: 0,
@@ -17,24 +62,26 @@ const processImport = async (records, userId, assignedTo) => {
   };
 
   const validRecords = [];
+  const seenPhones = new Set();
+  const seenEmails = new Set();
 
   for (let i = 0; i < records.length; i++) {
     const row = records[i];
     const rowNum = i + 2;
     const errors = [];
 
-    if (!row.Name && !row.name) errors.push('Name is required');
-    if (!row.Phone && !row.phone) errors.push('Phone is required');
+    // 1. Mandatory Fields
+    const name = getVal(row, 'POC Name', 'pocName', 'Name', 'name', 'Contact Person', 'contactPerson');
+    const rawPhone = getVal(row, 'POC Phone', 'pocPhone', 'Phone', 'phone', 'Mobile', 'mobile', 'Contact Number', 'contactNumber');
 
-    const phone = (row.Phone || row.phone || '').toString().trim();
-    const email = (row.Email || row.email || '').toString().trim().toLowerCase();
-    const source = row.Source || row.source || 'Manual Entry';
-    const status = row.Status || row.status || 'NEW';
-    const priority = row.Priority || row.priority || 'MEDIUM';
+    if (!name) errors.push('Name is required');
+    if (!rawPhone) errors.push('Phone is required');
 
-    if (source && !VALID_SOURCES.includes(source)) errors.push(`Invalid source: ${source}`);
-    if (status && !VALID_STATUSES.includes(status)) errors.push(`Invalid status: ${status}`);
-    if (priority && !VALID_PRIORITIES.includes(priority)) errors.push(`Invalid priority: ${priority}`);
+    // Clean phone (keep only digits and optional leading +)
+    const phone = rawPhone.replace(/[^\d+]/g, '').trim();
+    if (phone && phone.replace(/\D/g, '').length < 6) {
+      errors.push('Phone must have at least 6 digits');
+    }
 
     if (errors.length > 0) {
       results.invalid++;
@@ -42,35 +89,107 @@ const processImport = async (records, userId, assignedTo) => {
       continue;
     }
 
-    // Check duplicate
+    const email = getVal(row, 'POC Email', 'pocEmail', 'Email', 'email').toLowerCase();
+
+    // In-batch duplicate check
+    if (seenPhones.has(phone)) {
+      results.duplicates++;
+      results.duplicateLeads.push({ row: rowNum, name, phone, existing: { name, phone, reason: 'Duplicate in file' } });
+      continue;
+    }
+    if (email && seenEmails.has(email)) {
+      results.duplicates++;
+      results.duplicateLeads.push({ row: rowNum, name, phone, existing: { name, email, reason: 'Duplicate email in file' } });
+      continue;
+    }
+
+    // Database duplicate check
     const dupFilter = [{ phone, isDeleted: false }];
     if (email) dupFilter.push({ email, isDeleted: false });
     const duplicate = await Lead.findOne({ $or: dupFilter }).select('name phone email');
 
     if (duplicate) {
       results.duplicates++;
-      results.duplicateLeads.push({ row: rowNum, name: row.Name || row.name, phone, existing: duplicate });
+      results.duplicateLeads.push({ row: rowNum, name, phone, existing: duplicate });
       continue;
     }
 
+    // Add to seen sets for this batch
+    seenPhones.add(phone);
+    if (email) seenEmails.add(email);
+
+    // 2. Business Information
+    const companyName = getVal(row, 'Company Name', 'companyName', 'Company', 'company');
+    const businessCategory = getVal(row, 'Business Category', 'businessCategory', 'BusinessType', 'businessType', 'Category', 'category');
+    const businessSubCategory = getVal(row, 'Sub Category', 'subCategory', 'Business Sub Category', 'businessSubCategory');
+    const website = getVal(row, 'Website', 'website', 'URL', 'url');
+    const address = getVal(row, 'Address', 'address');
+    const city = getVal(row, 'City', 'city');
+    const state = getVal(row, 'State', 'state');
+    const country = getVal(row, 'Country', 'country') || 'India';
+    const pincode = getVal(row, 'Pincode', 'pincode', 'Pin Code', 'pinCode', 'Zip', 'zip');
+    const businessDescription = getVal(row, 'Business Description', 'businessDescription', 'Description', 'description');
+
+    // 3. Contact Details
+    const pocJobTitle = getVal(row, 'POC Job Title', 'pocJobTitle', 'Job Title', 'jobTitle', 'Designation', 'designation');
+    const alternatePhone = getVal(row, 'POC Alt Phone', 'pocAltPhone', 'Alternate Phone', 'alternatePhone', 'Alt Phone', 'altPhone');
+    const pocLinkedIn = getVal(row, 'POC LinkedIn', 'pocLinkedIn', 'LinkedIn', 'linkedin');
+    const pocTalkNotes = getVal(row, 'POC Talk Notes', 'pocTalkNotes', 'Talk Notes', 'talkNotes');
+
+    // 4. Outreach / Type of Reach
+    const typeOfReach = getVal(row, 'Type of Reach', 'typeOfReach', 'Source', 'source') || 'Cold Call';
+    const source = typeOfReach;
+    const reachNotes = getVal(row, 'Reach Notes', 'reachNotes');
+
+    // 5. Sales & Pipeline Details
+    const interestedIn = getVal(row, 'Interested In', 'interestedIn', 'Service', 'service');
+    const estimatedBudget = getVal(row, 'Estimated Budget', 'estimatedBudget', 'Budget', 'budget');
+    const status = normalizeStatus(getVal(row, 'Status', 'status'));
+    const priority = normalizePriority(getVal(row, 'Priority', 'priority'));
+    const notes = getVal(row, 'General Notes', 'generalNotes', 'Notes', 'notes', 'Comments', 'comments');
+
     results.valid++;
     validRecords.push({
-      name: (row.Name || row.name || '').trim(),
-      companyName: (row.Company || row.CompanyName || row.company || row.companyName || '').trim(),
+      name,
+      pocJobTitle,
       phone,
-      alternatePhone: (row.AlternatePhone || row.alternatePhone || '').toString().trim(),
+      alternatePhone,
       email,
-      website: (row.Website || row.website || '').trim(),
-      city: (row.City || row.city || '').trim(),
-      state: (row.State || row.state || '').trim(),
-      country: (row.Country || row.country || 'India').trim(),
-      businessType: (row.BusinessType || row.businessType || '').trim(),
+      pocLinkedIn,
+      pocTalkNotes,
+      companyName,
+      businessCategory,
+      businessSubCategory,
+      businessType: businessCategory,
+      website,
+      address,
+      city,
+      state,
+      country,
+      pincode,
+      businessDescription,
+      typeOfReach,
       source,
+      reachNotes,
       status,
       priority,
-      interestedIn: (row.InterestedIn || row.interestedIn || '').trim(),
-      estimatedBudget: (row.Budget || row.budget || row.EstimatedBudget || row.estimatedBudget || '').toString().trim(),
-      assignedTo: assignedTo || null,
+      interestedIn,
+      estimatedBudget,
+      notes,
+      assignedTo: effectiveAssignedTo || null,
+      primaryAssignedTo: effectiveAssignedTo || null,
+      primaryAssignedAt: effectiveAssignedTo ? new Date() : null,
+      assignmentHistory: effectiveAssignedTo
+        ? [
+            {
+              assignedTo: effectiveAssignedTo,
+              assignedBy: userId,
+              type: 'PRIMARY',
+              assignedAt: new Date(),
+              note: userRole === 'SALES_EXECUTIVE' ? 'Auto-assigned upon bulk import' : 'Bulk imported and assigned',
+            },
+          ]
+        : [],
       createdBy: userId,
     });
   }
@@ -79,14 +198,14 @@ const processImport = async (records, userId, assignedTo) => {
     const inserted = await Lead.insertMany(validRecords, { ordered: false });
     results.imported = inserted.length;
 
-    // Create activities for imported leads
+    // Create activity logs for imported leads
     for (const lead of inserted) {
       await createActivity({
         lead: lead._id,
         user: userId,
         type: 'LEAD_CREATED',
-        description: `Lead imported: ${lead.name}`,
-        metadata: { source: lead.source, importedBulk: true },
+        description: `Lead imported from file: ${lead.name}`,
+        metadata: { source: lead.typeOfReach || lead.source, importedBulk: true },
       });
     }
   }

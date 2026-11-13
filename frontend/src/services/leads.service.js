@@ -12,6 +12,7 @@ export const leadsService = {
   assign: (id, data) => api.patch(`/leads/${id}/assign`, data),
   checkDuplicate: (params) => api.get('/leads/check-duplicate', { params }),
   import: (formData) => api.post('/leads/import', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  downloadTemplate: () => api.get('/leads/import-template', { responseType: 'blob' }),
   export: (params) => api.get('/leads/export', { params, responseType: 'blob' }),
 
   // Calls

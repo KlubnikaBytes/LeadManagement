@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }) => {
   const isTeamLeader = user?.role === 'TEAM_LEADER'
   const isSalesExec = user?.role === 'SALES_EXECUTIVE'
   const canManageUsers = isAdmin
-  const canImport = isAdmin || isTeamLeader
+  const canImport = !!user
   const canDelete = isAdmin
   const canAssign = isAdmin || isTeamLeader
 

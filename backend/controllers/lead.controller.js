@@ -195,7 +195,7 @@ const importLeads = async (req, res, next) => {
     }
 
     const assignedTo = req.body.assignedTo || null;
-    const result = await processImport(records, req.user._id, assignedTo);
+    const result = await processImport(records, req.user, assignedTo);
     req.app.get('io')?.emit('lead_updated');
     res.json({ success: true, data: result });
   } catch (err) {
@@ -312,4 +312,78 @@ const exportLeads = async (req, res, next) => {
   }
 };
 
-module.exports = { getLeads, getOptions, addOption, getLead, createLead, updateLead, deleteLead, changeStatus, assignLead, checkDuplicate, importLeads, exportLeads };
+const getImportTemplate = async (req, res, next) => {
+  try {
+    const templateData = [
+      {
+        'Company Name': 'Sharma Enterprises',
+        'Business Category': 'Restaurant',
+        'Sub Category': 'Cafe & Bakery',
+        'Website': 'https://sharmacafe.example.com',
+        'Address': '12/A Park Street, Ground Floor',
+        'City': 'Kolkata',
+        'State': 'West Bengal',
+        'Country': 'India',
+        'Pincode': '700016',
+        'Business Description': 'Popular cafe looking to develop custom delivery mobile app and web portal',
+        'POC Name': 'Rajesh Sharma',
+        'POC Job Title': 'Managing Director',
+        'POC Phone': '9876543210',
+        'POC Alt Phone': '9876543211',
+        'POC Email': 'rajesh@sharmacafe.example.com',
+        'POC LinkedIn': 'https://linkedin.com/in/rajesh-sharma',
+        'POC Talk Notes': 'Spoke with Rajesh; they want an online ordering portal by next month.',
+        'Type of Reach': 'Cold Call',
+        'Reach Notes': 'Contacted directly from local business registry',
+        'Status': 'NEW',
+        'Priority': 'HIGH',
+        'Interested In': 'Mobile App Development',
+        'Estimated Budget': '₹1,50,000 - ₹2,50,000',
+        'General Notes': 'Follow up next Tuesday morning after menu review',
+      },
+      {
+        'Company Name': 'Gupta Dental Care',
+        'Business Category': 'Healthcare',
+        'Sub Category': 'Dental Clinic',
+        'Website': 'https://guptadental.example.com',
+        'Address': '45 MG Road, Near City Mall',
+        'City': 'Mumbai',
+        'State': 'Maharashtra',
+        'Country': 'India',
+        'Pincode': '400001',
+        'Business Description': 'Multi-specialty dental clinic expanding to 3 locations',
+        'POC Name': 'Dr. Priya Gupta',
+        'POC Job Title': 'Clinic Owner',
+        'POC Phone': '9123456780',
+        'POC Alt Phone': '',
+        'POC Email': 'drpriya@guptadental.example.com',
+        'POC LinkedIn': '',
+        'POC Talk Notes': 'Interested in appointment booking system and SEO services',
+        'Type of Reach': 'Instagram',
+        'Reach Notes': 'Replied to direct Instagram campaign outreach',
+        'Status': 'NEW',
+        'Priority': 'MEDIUM',
+        'Interested In': 'Website Development',
+        'Estimated Budget': '₹75,000 - ₹1,00,000',
+        'General Notes': 'Prefers WhatsApp updates on weekends',
+      },
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(templateData);
+
+    const headers = Object.keys(templateData[0]);
+    worksheet['!cols'] = headers.map(h => ({ wch: Math.max(h.length + 3, 16) }));
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Leads Template');
+
+    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+    res.setHeader('Content-Disposition', 'attachment; filename="leads_sample_template.xlsx"');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(buffer);
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { getLeads, getOptions, addOption, getLead, createLead, updateLead, deleteLead, changeStatus, assignLead, checkDuplicate, importLeads, exportLeads, getImportTemplate };

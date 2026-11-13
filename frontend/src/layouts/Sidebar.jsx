@@ -102,10 +102,11 @@ export const Sidebar = ({ onClose }) => {
         <NavItem to="/followups" icon={Calendar} label="Follow-ups" onClick={onClose} />
 
         <div className="pt-3 pb-1">
-          <p className="text-xs font-semibold text-kb-taupe uppercase tracking-wider px-3 mb-1">Insights</p>
+          <p className="text-xs font-semibold text-kb-taupe uppercase tracking-wider px-3 mb-1">Insights & Data</p>
         </div>
         <NavItem to="/analytics" icon={BarChart3} label="Analytics" onClick={onClose} />
         <NavItem to="/reports" icon={FileText} label="Reports" onClick={onClose} />
+        <NavItem to="/import" icon={Upload} label="Import Leads" onClick={onClose} />
 
         {(isAdmin || isTeamLeader) && (
           <>
@@ -115,8 +116,6 @@ export const Sidebar = ({ onClose }) => {
             <NavItem to="/team" icon={Users} label="Team" onClick={onClose} />
           </>
         )}
-
-        {canImport && <NavItem to="/import" icon={Upload} label="Import Leads" onClick={onClose} />}
 
         {isAdmin && (
           <>

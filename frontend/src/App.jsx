@@ -54,7 +54,7 @@ const AppRoutes = () => {
           <ProtectedRoute roles={['ADMIN', 'TEAM_LEADER']}><TeamPage /></ProtectedRoute>
         } />
         <Route path="/import" element={
-          <ProtectedRoute roles={['ADMIN', 'TEAM_LEADER']}><ImportPage /></ProtectedRoute>
+          <ProtectedRoute><ImportPage /></ProtectedRoute>
         } />
         <Route path="/settings" element={
           <ProtectedRoute roles={['ADMIN']}><SettingsPage /></ProtectedRoute>
