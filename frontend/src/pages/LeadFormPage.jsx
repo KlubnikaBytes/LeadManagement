@@ -311,14 +311,16 @@ export const LeadFormPage = () => {
       setSearchingCompanies(true)
       try {
         const res = await leadsService.searchCompanies(q)
-        setCompanySuggestions(res.data.data || [])
-        setShowCompanySuggestions(true)
+        const matches = res.data?.data || []
+        setCompanySuggestions(matches)
+        setShowCompanySuggestions(matches.length > 0)
       } catch {
         setCompanySuggestions([])
+        setShowCompanySuggestions(false)
       } finally {
         setSearchingCompanies(false)
       }
-    }, 200)
+    }, 250)
 
     return () => clearTimeout(timer)
   }, [form.companyName, selectedCompanyMeta])

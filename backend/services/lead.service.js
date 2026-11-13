@@ -512,6 +512,54 @@ const checkDuplicate = async (phone, email, website) => {
   return Lead.findOne({ $or: orConditions }).populate('assignedTo', 'name email');
 };
 
+const searchCompanies = async (query) => {
+  const q = (query || '').trim();
+  if (!q) return [];
+
+  const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const matches = await Lead.find({
+    companyName: { $regex: escaped, $options: 'i' },
+    isDeleted: false,
+  })
+    .select(
+      'companyName website businessCategory businessSubCategory address city state country pincode businessDescription name pocJobTitle phone email status priority'
+    )
+    .sort({ updatedAt: -1 })
+    .lean();
+
+  const map = new Map();
+  for (const lead of matches) {
+    if (!lead.companyName || !lead.companyName.trim()) continue;
+    const key = lead.companyName.trim().toLowerCase();
+    if (!map.has(key)) {
+      map.set(key, {
+        companyName: lead.companyName.trim(),
+        website: lead.website || '',
+        businessCategory: lead.businessCategory || '',
+        businessSubCategory: lead.businessSubCategory || '',
+        address: lead.address || '',
+        city: lead.city || '',
+        state: lead.state || '',
+        country: lead.country || 'India',
+        pincode: lead.pincode || '',
+        businessDescription: lead.businessDescription || '',
+        pocs: [],
+      });
+    }
+    const item = map.get(key);
+    item.pocs.push({
+      leadId: lead._id,
+      name: lead.name,
+      pocJobTitle: lead.pocJobTitle || '',
+      phone: lead.phone,
+      email: lead.email || '',
+      status: lead.status,
+    });
+  }
+
+  return Array.from(map.values()).slice(0, 8);
+};
+
 module.exports = {
   getLeads,
   getLeadById,
@@ -521,6 +569,7 @@ module.exports = {
   assignLead,
   deleteLead,
   checkDuplicate,
+  searchCompanies,
   canAccessSalesSection,
   sanitizeLeadForUser,
 };

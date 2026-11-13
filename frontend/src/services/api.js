@@ -53,7 +53,7 @@ api.interceptors.response.use(
       }
     }
     const message = error.response?.data?.message || error.message || 'Something went wrong'
-    if (error.response?.status !== 401) {
+    if (error.response?.status !== 401 && !error.config?.skipToast) {
       toast.error(message)
     }
     return Promise.reject(error)

@@ -1,3 +1,4 @@
+const Lead = require('../models/Lead.model');
 const leadService = require('../services/lead.service');
 const Note = require('../models/Note.model');
 const DropdownOption = require('../models/DropdownOption.model');
@@ -389,50 +390,8 @@ const getImportTemplate = async (req, res, next) => {
 const searchCompanies = async (req, res, next) => {
   try {
     const q = (req.query.q || req.query.query || '').trim();
-    if (!q) {
-      return res.json({ success: true, data: [] });
-    }
-
-    const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const matches = await Lead.find({
-      companyName: { $regex: escaped, $options: 'i' },
-      isDeleted: false,
-    })
-      .select('companyName website businessCategory businessSubCategory address city state country pincode businessDescription name pocJobTitle phone email status priority')
-      .sort({ updatedAt: -1 })
-      .lean();
-
-    const map = new Map();
-    for (const lead of matches) {
-      if (!lead.companyName || !lead.companyName.trim()) continue;
-      const key = lead.companyName.trim().toLowerCase();
-      if (!map.has(key)) {
-        map.set(key, {
-          companyName: lead.companyName.trim(),
-          website: lead.website || '',
-          businessCategory: lead.businessCategory || '',
-          businessSubCategory: lead.businessSubCategory || '',
-          address: lead.address || '',
-          city: lead.city || '',
-          state: lead.state || '',
-          country: lead.country || 'India',
-          pincode: lead.pincode || '',
-          businessDescription: lead.businessDescription || '',
-          pocs: [],
-        });
-      }
-      const item = map.get(key);
-      item.pocs.push({
-        leadId: lead._id,
-        name: lead.name,
-        pocJobTitle: lead.pocJobTitle || '',
-        phone: lead.phone,
-        email: lead.email || '',
-        status: lead.status,
-      });
-    }
-
-    res.json({ success: true, data: Array.from(map.values()).slice(0, 8) });
+    const data = await leadService.searchCompanies(q);
+    res.json({ success: true, data });
   } catch (err) {
     next(err);
   }
