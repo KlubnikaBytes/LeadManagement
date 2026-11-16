@@ -28,23 +28,27 @@ import toast from 'react-hot-toast'
 import { useSocketEvent } from '../hooks/useSocketEvent'
 
 const DetailItem = ({ icon: Icon, label, value, isLink, linkHref }) => {
-  if (!value) return null
+  const displayValue = value && String(value).trim() !== '' ? String(value).trim() : '—'
+  const hasValue = displayValue !== '—'
+
   return (
     <div className="flex items-start gap-3 p-3 bg-kb-cream-deep rounded-xl border border-kb-sand">
       {Icon && <Icon className="w-4 h-4 text-kb-umber mt-0.5 flex-shrink-0" />}
       <div className="min-w-0 flex-1">
         <p className="text-xs text-kb-muted font-medium uppercase tracking-wider">{label}</p>
-        {isLink ? (
+        {hasValue && isLink ? (
           <a
-            href={linkHref || value}
+            href={linkHref || displayValue}
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm font-medium text-kb-strawberry hover:text-kb-strawberry-hover hover:underline flex items-center gap-1 mt-0.5 break-all"
           >
-            {value} <ExternalLink className="w-3 h-3 flex-shrink-0" />
+            {displayValue} <ExternalLink className="w-3 h-3 flex-shrink-0" />
           </a>
         ) : (
-          <p className="text-sm font-medium text-kb-cocoa mt-0.5 break-words">{value}</p>
+          <p className={`text-sm font-medium mt-0.5 break-words ${hasValue ? 'text-kb-cocoa' : 'text-kb-muted'}`}>
+            {displayValue}
+          </p>
         )}
       </div>
     </div>
@@ -582,22 +586,17 @@ export const LeadDetailsPage = () => {
                         label="Business Sub-Category"
                         value={lead.businessSubCategory}
                       />
+                      <DetailItem icon={MapPin} label="Full Address & Location" value={fullLocation} />
                     </div>
 
-                    {fullLocation && (
-                      <DetailItem icon={MapPin} label="Full Address & Location" value={fullLocation} />
-                    )}
-
-                    {lead.businessDescription && (
-                      <div className="p-4 bg-kb-cream-deep rounded-xl border border-kb-sand">
-                        <p className="text-xs font-semibold text-kb-muted uppercase tracking-wider mb-1">
-                          About the Business
-                        </p>
-                        <p className="text-sm text-kb-text leading-relaxed whitespace-pre-wrap">
-                          {lead.businessDescription}
-                        </p>
-                      </div>
-                    )}
+                    <div className="p-4 bg-kb-cream-deep rounded-xl border border-kb-sand">
+                      <p className="text-xs font-semibold text-kb-muted uppercase tracking-wider mb-1">
+                        About the Business / Description
+                      </p>
+                      <p className={`text-sm leading-relaxed whitespace-pre-wrap ${lead.businessDescription ? 'text-kb-text' : 'text-kb-muted'}`}>
+                        {lead.businessDescription || '—'}
+                      </p>
+                    </div>
                   </div>
 
                   {/* SECTION 2: POINT OF CONTACT (POC) DETAILS */}
@@ -658,28 +657,28 @@ export const LeadDetailsPage = () => {
                     </div>
 
                     {/* Notes About Talk with POC */}
-                    {lead.pocTalkNotes ? (
-                      <div className="p-4 bg-kb-strawberry-tint rounded-xl border border-kb-lost-border">
-                        <div className="flex items-center gap-2 mb-2">
-                          <MessageSquare className="w-4 h-4 text-kb-strawberry" />
-                          <p className="text-xs font-bold text-kb-crimson uppercase tracking-wider">
-                            Notes About Talk / Conversation with POC
-                          </p>
-                        </div>
+                    <div className={`p-4 rounded-xl border ${lead.pocTalkNotes ? 'bg-kb-strawberry-tint border-kb-lost-border' : 'bg-kb-cream-deep border-kb-sand'}`}>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <MessageSquare className={`w-4 h-4 ${lead.pocTalkNotes ? 'text-kb-strawberry' : 'text-kb-muted'}`} />
+                        <p className={`text-xs font-bold uppercase tracking-wider ${lead.pocTalkNotes ? 'text-kb-crimson' : 'text-kb-muted'}`}>
+                          Notes About Talk / Conversation with POC
+                        </p>
+                      </div>
+                      {lead.pocTalkNotes ? (
                         <p className="text-sm text-kb-cocoa leading-relaxed whitespace-pre-wrap">
                           {lead.pocTalkNotes}
                         </p>
-                      </div>
-                    ) : (
-                      <div className="p-4 bg-kb-cream rounded-xl border border-dashed border-kb-sand text-center">
-                        <p className="text-xs text-kb-muted">No specific conversation notes recorded with POC yet.</p>
-                        {canViewSales && (
-                          <Link to={`/leads/${id}/edit`} className="text-xs text-kb-strawberry hover:underline mt-1 inline-block font-medium">
-                            + Add conversation notes
-                          </Link>
-                        )}
-                      </div>
-                    )}
+                      ) : (
+                        <p className="text-sm text-kb-muted">
+                          —
+                          {canViewSales && (
+                            <Link to={`/leads/${id}/edit`} className="text-xs text-kb-strawberry hover:underline ml-2 inline-block font-medium">
+                              + Add conversation notes
+                            </Link>
+                          )}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   {/* SECTION 3: TYPE OF REACH */}
@@ -694,13 +693,13 @@ export const LeadDetailsPage = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <DetailItem
                         icon={Send}
-                        label="Outreach Channel"
+                        label="Outreach Channel / Type of Reach"
                         value={lead.typeOfReach || lead.source || 'Cold Call'}
                       />
                       <DetailItem
                         icon={Tag}
                         label="Reach Campaign / Channel Details"
-                        value={lead.reachNotes || '—'}
+                        value={lead.reachNotes}
                       />
                     </div>
                   </div>
@@ -785,14 +784,14 @@ export const LeadDetailsPage = () => {
                           </div>
                         )}
 
-                        {lead.notes && (
-                          <div className="p-4 bg-kb-cream-deep rounded-xl border border-kb-sand">
-                            <p className="text-xs font-semibold text-kb-muted uppercase tracking-wider mb-1">
-                              General / Internal Notes
-                            </p>
-                            <p className="text-sm text-kb-text leading-relaxed whitespace-pre-wrap">{lead.notes}</p>
-                          </div>
-                        )}
+                        <div className="p-4 bg-kb-cream-deep rounded-xl border border-kb-sand">
+                          <p className="text-xs font-semibold text-kb-muted uppercase tracking-wider mb-1">
+                            General / Internal Notes
+                          </p>
+                          <p className={`text-sm leading-relaxed whitespace-pre-wrap ${lead.notes ? 'text-kb-text' : 'text-kb-muted'}`}>
+                            {lead.notes || '—'}
+                          </p>
+                        </div>
                       </div>
 
                       {/* Conversion Details (if converted) */}
