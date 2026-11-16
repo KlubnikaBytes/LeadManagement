@@ -43,6 +43,7 @@ const getLeads = async (query, user) => {
   const {
     page = 1, limit = 20, search, status, source, typeOfReach, businessCategory,
     assignedTo, createdBy, member, mine, priority, followUp, sortBy = 'createdAt', sortOrder = 'desc',
+    dateField = 'createdAt', dateRange, startDate, endDate,
   } = query;
 
   const { page: pageNum, limit: limitNum, skip } = paginate(page, limit, query._export ? 50000 : 100);
@@ -102,6 +103,58 @@ const getLeads = async (query, user) => {
     }
   }
   if (priority) filter.priority = priority;
+
+  // Date Filtering (Created Date, Last Contacted, Next Follow-up, Last Updated)
+  const allowedDateFields = ['createdAt', 'lastContactedAt', 'nextFollowUpAt', 'updatedAt'];
+  const targetDateField = allowedDateFields.includes(dateField) ? dateField : 'createdAt';
+
+  if (dateRange || startDate || endDate) {
+    const now = new Date();
+    let rangeStart = null;
+    let rangeEnd = null;
+
+    if (dateRange === 'today') {
+      rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+      rangeEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    } else if (dateRange === 'yesterday') {
+      const y = new Date(now);
+      y.setDate(y.getDate() - 1);
+      rangeStart = new Date(y.getFullYear(), y.getMonth(), y.getDate(), 0, 0, 0, 0);
+      rangeEnd = new Date(y.getFullYear(), y.getMonth(), y.getDate(), 23, 59, 59, 999);
+    } else if (dateRange === 'last_7_days') {
+      const d = new Date(now);
+      d.setDate(d.getDate() - 6);
+      rangeStart = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+      rangeEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    } else if (dateRange === 'this_month') {
+      rangeStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+      rangeEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    } else if (dateRange === 'last_month') {
+      rangeStart = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+      rangeEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+    } else if (dateRange === 'custom' || startDate || endDate) {
+      if (startDate) {
+        const parsedStart = new Date(startDate);
+        if (!isNaN(parsedStart.getTime())) {
+          rangeStart = new Date(parsedStart.getFullYear(), parsedStart.getMonth(), parsedStart.getDate(), 0, 0, 0, 0);
+        }
+      }
+      if (endDate) {
+        const parsedEnd = new Date(endDate);
+        if (!isNaN(parsedEnd.getTime())) {
+          rangeEnd = new Date(parsedEnd.getFullYear(), parsedEnd.getMonth(), parsedEnd.getDate(), 23, 59, 59, 999);
+        }
+      }
+    }
+
+    if (rangeStart || rangeEnd) {
+      const dateCondition = {};
+      if (rangeStart) dateCondition.$gte = rangeStart;
+      if (rangeEnd) dateCondition.$lte = rangeEnd;
+      andConditions.push({ [targetDateField]: dateCondition });
+    }
+  }
+
   if (andConditions.length > 0) filter.$and = andConditions;
 
   if (followUp) {

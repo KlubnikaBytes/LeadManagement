@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useLocation, Link, useNavigate } from 'react-router-dom'
-import { Plus, Download, RefreshCw, Filter, Users, X } from 'lucide-react'
+import { Plus, Download, RefreshCw, Filter, Users, X, Calendar } from 'lucide-react'
 import { useLeads } from '../hooks/useLeads'
 import { useAuth } from '../context/AuthContext'
 import { LeadTable } from '../components/leads/LeadTable'
@@ -30,6 +30,10 @@ export const LeadsPage = () => {
     priority: urlParams.get('priority') || '',
     followUp: urlParams.get('followUp') || '',
     mine: urlParams.get('mine') || '',
+    dateField: urlParams.get('dateField') || 'createdAt',
+    dateRange: urlParams.get('dateRange') || '',
+    startDate: urlParams.get('startDate') || '',
+    endDate: urlParams.get('endDate') || '',
   })
 
   const [filters, setFilters] = useState(() => parseFiltersFromParams(params))
@@ -120,7 +124,10 @@ export const LeadsPage = () => {
     }
   }
 
-  const activeFiltersCount = Object.values(filters).filter(Boolean).length
+  const activeFiltersCount = Object.entries(filters).filter(([k, v]) => {
+    if (k === 'dateField') return false
+    return Boolean(v)
+  }).length
 
   return (
     <div className="space-y-4 sm:space-y-5 animate-fade-in">
@@ -208,9 +215,41 @@ export const LeadsPage = () => {
           </div>
         </div>
 
-        {(filters.member || filters.createdBy || filters.assignedTo) && salesUsers.length > 0 && (
+        {(filters.member || filters.createdBy || filters.assignedTo || filters.dateRange || filters.startDate || filters.endDate) && (
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            {filters.member && (
+            {(filters.dateRange || filters.startDate || filters.endDate) && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-kb-strawberry-tint text-kb-strawberry border border-kb-lost-border font-medium">
+                <Calendar className="w-3.5 h-3.5" />
+                <span>
+                  Date: {filters.dateRange === 'today' && 'Today'}
+                  {filters.dateRange === 'yesterday' && 'Yesterday'}
+                  {filters.dateRange === 'last_7_days' && 'Last 7 Days'}
+                  {filters.dateRange === 'this_month' && 'This Month'}
+                  {filters.dateRange === 'last_month' && 'Last Month'}
+                  {filters.dateRange === 'custom' && (
+                    filters.startDate && filters.endDate
+                      ? `${filters.startDate} to ${filters.endDate}`
+                      : filters.startDate
+                      ? `From ${filters.startDate}`
+                      : filters.endDate
+                      ? `Until ${filters.endDate}`
+                      : 'Custom Range'
+                  )}
+                  {filters.dateField === 'lastContactedAt' && ' (Last Contact)'}
+                  {filters.dateField === 'nextFollowUpAt' && ' (Next Follow-up)'}
+                  {filters.dateField === 'updatedAt' && ' (Last Updated)'}
+                  {(!filters.dateField || filters.dateField === 'createdAt') && ' (Created Date)'}
+                </span>
+                <button
+                  onClick={() => applyFilters({ ...filters, dateRange: '', startDate: '', endDate: '' })}
+                  className="hover:text-kb-cocoa"
+                  aria-label="Clear date filter"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {filters.member && salesUsers.length > 0 && (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-kb-strawberry-tint text-kb-crimson border border-kb-lost-border font-medium">
                 Member: {salesUsers.find(u => u._id === filters.member)?.name || 'Selected'}
                 <button onClick={() => applyFilters({ ...filters, member: '' })} className="hover:text-kb-cocoa" aria-label="Clear member filter">
@@ -218,7 +257,7 @@ export const LeadsPage = () => {
                 </button>
               </span>
             )}
-            {filters.createdBy && (
+            {filters.createdBy && salesUsers.length > 0 && (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-kb-umber-bg text-kb-umber-fg border border-kb-umber-border font-medium">
                 Added by: {salesUsers.find(u => u._id === filters.createdBy)?.name || 'Selected'}
                 <button onClick={() => applyFilters({ ...filters, createdBy: '' })} className="hover:text-kb-cocoa" aria-label="Clear added by filter">
@@ -226,7 +265,7 @@ export const LeadsPage = () => {
                 </button>
               </span>
             )}
-            {filters.assignedTo && (
+            {filters.assignedTo && salesUsers.length > 0 && (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-kb-new-bg text-kb-new-fg border border-kb-new-border font-medium">
                 Assigned to: {filters.assignedTo === 'unassigned' ? 'Unassigned' : (salesUsers.find(u => u._id === filters.assignedTo)?.name || 'Selected')}
                 <button onClick={() => applyFilters({ ...filters, assignedTo: '' })} className="hover:text-kb-cocoa" aria-label="Clear assigned to filter">
