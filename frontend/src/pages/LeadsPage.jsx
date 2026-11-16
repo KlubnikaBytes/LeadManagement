@@ -24,6 +24,8 @@ export const LeadsPage = () => {
   const parseFiltersFromParams = (urlParams) => ({
     status: urlParams.get('status') || '',
     source: urlParams.get('source') || '',
+    businessCategory: urlParams.get('businessCategory') || '',
+    businessSubCategory: urlParams.get('businessSubCategory') || '',
     member: urlParams.get('member') || '',
     createdBy: urlParams.get('createdBy') || '',
     assignedTo: urlParams.get('assignedTo') || '',
@@ -257,8 +259,24 @@ export const LeadsPage = () => {
           </div>
         </div>
 
-        {(filters.member || filters.createdBy || filters.assignedTo || filters.dateRange || filters.startDate || filters.endDate) && (
+        {(filters.member || filters.createdBy || filters.assignedTo || filters.dateRange || filters.startDate || filters.endDate || filters.businessCategory || filters.businessSubCategory) && (
           <div className="flex flex-wrap items-center gap-2 text-xs">
+            {filters.businessCategory && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-kb-cream-deep text-kb-cocoa border border-kb-sand font-medium">
+                Category: {filters.businessCategory}
+                <button onClick={() => applyFilters({ ...filters, businessCategory: '', businessSubCategory: '' })} className="hover:text-kb-cocoa" aria-label="Clear category filter">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {filters.businessSubCategory && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-kb-cream-deep text-kb-cocoa border border-kb-sand font-medium">
+                Sub-Category: {filters.businessSubCategory}
+                <button onClick={() => applyFilters({ ...filters, businessSubCategory: '' })} className="hover:text-kb-cocoa" aria-label="Clear sub-category filter">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
             {(filters.dateRange || filters.startDate || filters.endDate) && (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-kb-strawberry-tint text-kb-strawberry border border-kb-lost-border font-medium">
                 <Calendar className="w-3.5 h-3.5" />

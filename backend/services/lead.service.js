@@ -256,7 +256,7 @@ const getLeadById = async (id, user) => {
     .populate('assignmentHistory.assignedBy', 'name email role');
 
   if (!lead) throw Object.assign(new Error('Lead not found'), { statusCode: 404 });
-  
+
   const leadObj = sanitizeLeadForUser(lead.toObject ? lead.toObject() : lead, user);
   if (lead.companyName && lead.companyName.trim()) {
     const siblings = await Lead.find({

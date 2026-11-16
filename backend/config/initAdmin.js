@@ -1,64 +1,81 @@
 const User = require('../models/User.model');
 
 const syncAdmin = async () => {
-  const adminEmail = process.env.ADMIN_EMAIL;
-  const adminPassword = process.env.ADMIN_PASSWORD;
+  const adminConfigs = [];
 
-  if (!adminEmail || !adminPassword) {
-    return;
+  // Primary Admin
+  if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
+    adminConfigs.push({
+      email: process.env.ADMIN_EMAIL.toLowerCase().trim(),
+      password: process.env.ADMIN_PASSWORD,
+      defaultName: 'Asif Shaikh',
+    });
   }
 
-  try {
-    const normalizedEmail = adminEmail.toLowerCase().trim();
+  // Secondary Admin
+  if (process.env.ADMIN2_EMAIL && process.env.ADMIN2_PASSWORD) {
+    adminConfigs.push({
+      email: process.env.ADMIN2_EMAIL.toLowerCase().trim(),
+      password: process.env.ADMIN2_PASSWORD,
+      defaultName: 'Debarun Guria',
+    });
+  }
 
-    // Check if an admin exists
-    let admin = await User.findOne({ role: 'ADMIN' }).select('+password');
-    if (!admin) {
-      admin = await User.findOne({ email: normalizedEmail }).select('+password');
+  // Support any further ADMIN*_EMAIL / ADMIN*_PASSWORD
+  Object.keys(process.env).forEach((key) => {
+    const match = key.match(/^ADMIN(\d+)_EMAIL$/);
+    if (match) {
+      const num = match[1];
+      const email = process.env[key];
+      const password = process.env[`ADMIN${num}_PASSWORD`];
+      if (email && password && !adminConfigs.some((a) => a.email === email.toLowerCase().trim())) {
+        adminConfigs.push({
+          email: email.toLowerCase().trim(),
+          password,
+          defaultName: 'Admin',
+        });
+      }
     }
+  });
 
-    if (admin) {
-      let needsSave = false;
+  if (adminConfigs.length === 0) return;
 
-      // Retain existing name and _id, only update credentials if changed
-      if (admin.email !== normalizedEmail) {
-        admin.email = normalizedEmail;
-        needsSave = true;
+  for (const config of adminConfigs) {
+    try {
+      let admin = await User.findOne({ email: config.email }).select('+password');
+
+      if (admin) {
+        let needsSave = false;
+        if (admin.role !== 'ADMIN') {
+          admin.role = 'ADMIN';
+          needsSave = true;
+        }
+        if (!admin.isActive) {
+          admin.isActive = true;
+          needsSave = true;
+        }
+        const isMatch = await admin.comparePassword(config.password);
+        if (!isMatch) {
+          admin.password = config.password; // Pre-save hook hashes it
+          needsSave = true;
+        }
+        if (needsSave) {
+          await admin.save();
+          console.log(`[AUTH] Admin credentials verified & updated for: ${config.email}`);
+        }
+      } else {
+        await User.create({
+          name: config.defaultName,
+          email: config.email,
+          password: config.password,
+          role: 'ADMIN',
+          isActive: true,
+        });
+        console.log(`[AUTH] New admin created: ${config.email} (${config.defaultName})`);
       }
-
-      if (admin.role !== 'ADMIN') {
-        admin.role = 'ADMIN';
-        needsSave = true;
-      }
-
-      if (!admin.isActive) {
-        admin.isActive = true;
-        needsSave = true;
-      }
-
-      const isMatch = await admin.comparePassword(adminPassword);
-      if (!isMatch) {
-        admin.password = adminPassword; // Pre-save hook hashes it
-        needsSave = true;
-      }
-
-      if (needsSave) {
-        await admin.save();
-        console.log(`[AUTH] Admin credentials synced successfully: ${normalizedEmail}`);
-      }
-    } else {
-      // If no admin exists in the system, create one
-      await User.create({
-        name: 'Admin',
-        email: normalizedEmail,
-        password: adminPassword,
-        role: 'ADMIN',
-        isActive: true,
-      });
-      console.log(`[AUTH] Default admin initialized: ${normalizedEmail}`);
+    } catch (err) {
+      console.error(`[AUTH] Failed to sync admin ${config.email}:`, err.message);
     }
-  } catch (err) {
-    console.error('[AUTH] Failed to sync admin credentials:', err.message);
   }
 };
 

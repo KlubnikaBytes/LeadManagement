@@ -1,5 +1,5 @@
 import { X, Calendar } from 'lucide-react'
-import { STATUSES, SOURCES, PRIORITIES } from '../../utils/constants'
+import { STATUSES, SOURCES, PRIORITIES, BUSINESS_CATEGORIES, BUSINESS_CATEGORIES_MAP } from '../../utils/constants'
 import { Select } from '../ui/Select'
 import { useState, useEffect } from 'react'
 import { leadsService } from '../../services/leads.service'
@@ -9,7 +9,7 @@ export const LeadFilters = ({ filters, onChange, salesUsers = [] }) => {
     if (k === 'dateField') return false
     return v && v !== ''
   })
-  const [dynamicOptions, setDynamicOptions] = useState({ sources: [], statuses: [] })
+  const [dynamicOptions, setDynamicOptions] = useState({ sources: [], statuses: [], businessCategories: [], businessSubCategories: [], subCategoriesByCategory: {} })
 
   useEffect(() => {
     leadsService.getOptions().then(res => setDynamicOptions(res.data.data)).catch(() => {})
@@ -17,9 +17,35 @@ export const LeadFilters = ({ filters, onChange, salesUsers = [] }) => {
 
   const handleChange = (key, value) => onChange({ ...filters, [key]: value })
 
+  const allCategories = Array.from(new Set([
+    ...BUSINESS_CATEGORIES,
+    ...(dynamicOptions.businessCategories || [])
+  ]))
+
+  const availableSubCategories = (() => {
+    if (filters.businessCategory) {
+      const predefined = BUSINESS_CATEGORIES_MAP[filters.businessCategory] || []
+      const dynamic = dynamicOptions.subCategoriesByCategory?.[filters.businessCategory] || []
+      return Array.from(new Set([...predefined, ...dynamic]))
+    }
+    const allPredefined = Object.values(BUSINESS_CATEGORIES_MAP).flat()
+    const allDynamic = dynamicOptions.businessSubCategories || []
+    return Array.from(new Set([...allPredefined, ...allDynamic]))
+  })()
+
+  const handleCategoryChange = (val) => {
+    onChange({
+      ...filters,
+      businessCategory: val,
+      businessSubCategory: '',
+    })
+  }
+
   const clearAll = () => onChange({
     status: '',
     source: '',
+    businessCategory: '',
+    businessSubCategory: '',
     member: '',
     createdBy: '',
     assignedTo: '',
@@ -76,6 +102,20 @@ export const LeadFilters = ({ filters, onChange, salesUsers = [] }) => {
           options={Array.from(new Set([...SOURCES, ...dynamicOptions.sources]))}
           placeholder="Type of Reach"
           className="w-full xl:w-44"
+        />
+        <Select
+          value={filters.businessCategory || ''}
+          onChange={handleCategoryChange}
+          options={allCategories.map(c => ({ value: c, label: c }))}
+          placeholder="Business Category"
+          className="w-full xl:w-44"
+        />
+        <Select
+          value={filters.businessSubCategory || ''}
+          onChange={(v) => handleChange('businessSubCategory', v)}
+          options={availableSubCategories.map(sc => ({ value: sc, label: sc }))}
+          placeholder="Sub Business Category"
+          className="w-full xl:w-48"
         />
         <Select
           value={filters.priority || ''}
