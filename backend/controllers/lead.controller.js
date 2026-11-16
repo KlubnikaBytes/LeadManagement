@@ -159,8 +159,8 @@ const assignLead = async (req, res, next) => {
 
 const checkDuplicate = async (req, res, next) => {
   try {
-    const { phone, email, website } = req.query;
-    const duplicate = await leadService.checkDuplicate(phone, email, website);
+    const { phone, email, website, companyEmail } = req.query;
+    const duplicate = await leadService.checkDuplicate(phone, email, website, companyEmail);
     res.json({ success: true, duplicate: duplicate || null });
   } catch (err) {
     next(err);
@@ -252,6 +252,7 @@ const exportLeads = async (req, res, next) => {
       const canViewSales = l.canViewSalesSection !== false;
       return {
         'Company Name': l.companyName || '',
+        'Company Email': l.companyEmail || '',
         'Business Category': l.businessCategory || l.businessType || '',
         'Sub Category': l.businessSubCategory || '',
         Website: l.website || '',
@@ -314,6 +315,7 @@ const getImportTemplate = async (req, res, next) => {
     const templateData = [
       {
         'Company Name': 'Sharma Enterprises',
+        'Company Email': 'info@sharmacafe.example.com',
         'Business Category': 'Restaurant',
         'Sub Category': 'Cafe & Bakery',
         'Website': 'https://sharmacafe.example.com',

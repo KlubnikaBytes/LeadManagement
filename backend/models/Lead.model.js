@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const leadSchema = new mongoose.Schema(
   {
     // Point of Contact (POC) Details
-    name: { type: String, required: [true, 'POC name is required'], trim: true },
+    name: { type: String, trim: true, default: '' },
     pocJobTitle: { type: String, trim: true },
     phone: {
       type: String,
@@ -18,6 +18,7 @@ const leadSchema = new mongoose.Schema(
 
     // Prospective Business Information
     companyName: { type: String, trim: true },
+    companyEmail: { type: String, lowercase: true, trim: true, default: '' },
     businessCategory: { type: String, trim: true, index: true },
     businessSubCategory: { type: String, trim: true },
     businessType: { type: String, trim: true }, // Legacy/alias for businessCategory

@@ -36,9 +36,17 @@ export const LeadsPage = () => {
     endDate: urlParams.get('endDate') || '',
   })
 
+  const getInitialPage = () => {
+    const urlPage = params.get('page')
+    if (urlPage && !isNaN(Number(urlPage))) return parseInt(urlPage, 10)
+    const saved = sessionStorage.getItem('crm_leads_page')
+    if (saved && !isNaN(Number(saved))) return parseInt(saved, 10)
+    return 1
+  }
+
   const [filters, setFilters] = useState(() => parseFiltersFromParams(params))
   const [searchQuery, setSearchQuery] = useState(params.get('search') || '')
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useState(getInitialPage)
   const [sortBy, setSortBy] = useState('createdAt')
   const [showFilters, setShowFilters] = useState(false)
   const [salesUsers, setSalesUsers] = useState([])
@@ -51,6 +59,16 @@ export const LeadsPage = () => {
 
   const debouncedSearch = useDebounce(searchQuery, 500)
 
+  const handlePageChange = (newPage) => {
+    setPage(newPage)
+    sessionStorage.setItem('crm_leads_page', String(newPage))
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set('page', String(newPage))
+    const qs = nextParams.toString()
+    sessionStorage.setItem('crm_leads_search', qs ? `?${qs}` : '')
+    navigate(qs ? `/leads?${qs}` : '/leads', { replace: true })
+  }
+
   const applyFilters = (nextFilters) => {
     const sanitizedFilters = { ...nextFilters }
     if (sanitizedFilters.startDate && sanitizedFilters.endDate && sanitizedFilters.startDate > sanitizedFilters.endDate) {
@@ -60,9 +78,11 @@ export const LeadsPage = () => {
     }
     setFilters(sanitizedFilters)
     setPage(1)
+    sessionStorage.setItem('crm_leads_page', '1')
     const nextParams = new URLSearchParams()
     Object.entries(sanitizedFilters).forEach(([k, v]) => { if (v) nextParams.set(k, v) })
     const qs = nextParams.toString()
+    sessionStorage.setItem('crm_leads_search', qs ? `?${qs}` : '')
     navigate(qs ? `/leads?${qs}` : '/leads', { replace: true })
   }
 
@@ -70,7 +90,13 @@ export const LeadsPage = () => {
   useEffect(() => {
     const currentParams = new URLSearchParams(searchParams)
     setFilters(parseFiltersFromParams(currentParams))
-    setPage(1)
+    const urlPage = currentParams.get('page')
+    if (urlPage && !isNaN(Number(urlPage))) {
+      const p = parseInt(urlPage, 10)
+      setPage(p)
+      sessionStorage.setItem('crm_leads_page', String(p))
+    }
+    sessionStorage.setItem('crm_leads_search', searchParams || '')
   }, [searchParams])
 
   useEffect(() => {
@@ -330,7 +356,7 @@ export const LeadsPage = () => {
                 canDelete={canDelete}
                 loading={loading}
               />
-              <Pagination pagination={pagination} onPageChange={setPage} />
+              <Pagination pagination={pagination} onPageChange={handlePageChange} />
             </>
           )}
         </div>

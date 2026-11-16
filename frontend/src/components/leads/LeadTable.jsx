@@ -101,7 +101,11 @@ export const LeadTable = ({ leads, onCall, onDelete, canDelete, loading }) => {
                     )}
                   </div>
                   <div className="flex items-center gap-1.5 flex-wrap text-xs text-kb-muted mt-0.5">
-                    <span className="text-kb-text font-medium">{lead.name}</span>
+                    {lead.name ? (
+                      <span className="text-kb-text font-medium">{lead.name}</span>
+                    ) : (
+                      <span className="text-kb-muted italic text-[11px]">No POC</span>
+                    )}
                     {lead.pocJobTitle && (
                       <span className="text-[11px] text-kb-cocoa bg-kb-white px-1.5 py-0.5 rounded border border-kb-sand font-medium whitespace-nowrap">
                         {lead.pocJobTitle}
@@ -274,7 +278,11 @@ export const LeadTable = ({ leads, onCall, onDelete, canDelete, loading }) => {
                             )}
                           </div>
                           <div className="flex items-center gap-1.5 flex-wrap text-xs text-kb-muted mt-0.5 truncate">
-                            <span className="text-kb-text font-medium">{lead.name}</span>
+                            {lead.name ? (
+                              <span className="text-kb-text font-medium">{lead.name}</span>
+                            ) : (
+                              <span className="text-kb-muted italic text-[11px]">No POC</span>
+                            )}
                             {lead.pocJobTitle && (
                               <span className="text-[11px] text-kb-cocoa bg-kb-cream-deep px-1.5 py-0.5 rounded border border-kb-sand font-medium whitespace-nowrap">
                                 {lead.pocJobTitle}

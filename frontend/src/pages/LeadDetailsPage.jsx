@@ -135,11 +135,19 @@ export const LeadDetailsPage = () => {
 
   const fullLocation = [lead.address, lead.city, lead.state, lead.country, lead.pincode].filter(Boolean).join(', ')
 
+  const backUrl = (() => {
+    const savedSearch = sessionStorage.getItem('crm_leads_search')
+    if (savedSearch) return `/leads${savedSearch.startsWith('?') ? savedSearch : `?${savedSearch}`}`
+    const savedPage = sessionStorage.getItem('crm_leads_page')
+    if (savedPage && savedPage !== '1') return `/leads?page=${savedPage}`
+    return '/leads'
+  })()
+
   return (
     <div className="space-y-5 animate-fade-in pb-12">
       {/* Top Bar: Back & Actions */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link to="/leads" className="btn-ghost text-sm">
+        <Link to={backUrl} className="btn-ghost text-sm">
           <ArrowLeft className="w-4 h-4" />
           Back to Leads
         </Link>
@@ -170,13 +178,13 @@ export const LeadDetailsPage = () => {
           <div className="card p-5 space-y-4">
             <div className="flex items-start gap-3.5">
               <div className="w-13 h-13 bg-kb-cocoa rounded-2xl flex items-center justify-center text-kb-coral font-bold text-xl flex-shrink-0 border border-kb-espresso shadow-sm">
-                {(lead.companyName || lead.name).charAt(0).toUpperCase()}
+                {(lead.companyName || lead.name || 'L').charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <h1 className="text-xl font-bold text-kb-cocoa truncate">{lead.companyName || lead.name}</h1>
+                <h1 className="text-xl font-bold text-kb-cocoa truncate">{lead.companyName || lead.name || 'Unnamed Lead'}</h1>
                 <div className="flex items-center gap-1.5 flex-wrap text-sm text-kb-muted mt-1 truncate">
                   <User className="w-3.5 h-3.5 text-kb-umber flex-shrink-0" />
-                  <span className="font-semibold text-kb-text">{lead.name}</span>
+                  <span className="font-semibold text-kb-text">{lead.name || '—'}</span>
                   {lead.pocJobTitle && (
                     <span className="text-xs font-semibold text-kb-strawberry">({lead.pocJobTitle})</span>
                   )}
@@ -284,6 +292,23 @@ export const LeadDetailsPage = () => {
                     <p className="text-xs text-kb-muted">Company Website</p>
                     <p className="text-sm text-kb-strawberry group-hover:underline transition-colors truncate font-medium">
                       {lead.website}
+                    </p>
+                  </div>
+                </a>
+              )}
+
+              {lead.companyEmail && (
+                <a
+                  href={`mailto:${lead.companyEmail}`}
+                  className="flex items-center gap-3 p-2.5 bg-kb-cream-deep hover:bg-kb-cream border border-kb-sand rounded-xl transition-colors group"
+                >
+                  <div className="w-8 h-8 bg-kb-white border border-kb-sand rounded-lg flex items-center justify-center">
+                    <Mail className="w-4 h-4 text-kb-umber" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-kb-muted">Company / Business Email</p>
+                    <p className="text-sm text-kb-strawberry group-hover:underline transition-colors truncate font-medium">
+                      {lead.companyEmail}
                     </p>
                   </div>
                 </a>
@@ -539,6 +564,13 @@ export const LeadDetailsPage = () => {
                         value={lead.website}
                         isLink
                         linkHref={lead.website?.startsWith('http') ? lead.website : `https://${lead.website}`}
+                      />
+                      <DetailItem
+                        icon={Mail}
+                        label="Company / Business Email"
+                        value={lead.companyEmail}
+                        isLink
+                        linkHref={lead.companyEmail ? `mailto:${lead.companyEmail}` : null}
                       />
                       <DetailItem
                         icon={Tag}

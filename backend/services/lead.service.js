@@ -79,6 +79,7 @@ const getLeads = async (query, user) => {
         { businessSubCategory: { $regex: search, $options: 'i' } },
         { phone: { $regex: search, $options: 'i' } },
         { email: { $regex: search, $options: 'i' } },
+        { companyEmail: { $regex: search, $options: 'i' } },
         { website: { $regex: search, $options: 'i' } },
         { typeOfReach: { $regex: search, $options: 'i' } },
         { address: { $regex: search, $options: 'i' } },
@@ -562,10 +563,11 @@ const deleteLead = async (id, userId) => {
   return lead;
 };
 
-const checkDuplicate = async (phone, email, website) => {
+const checkDuplicate = async (phone, email, website, companyEmail) => {
   const orConditions = [];
   if (phone) orConditions.push({ phone, isDeleted: false });
   if (email) orConditions.push({ email, isDeleted: false });
+  if (companyEmail) orConditions.push({ companyEmail, isDeleted: false });
   if (website) orConditions.push({ website, isDeleted: false });
 
   if (!orConditions.length) return null;
@@ -583,7 +585,7 @@ const searchCompanies = async (query) => {
     isDeleted: false,
   })
     .select(
-      'companyName website businessCategory businessSubCategory address city state country pincode businessDescription name pocJobTitle phone email status priority'
+      'companyName companyEmail website businessCategory businessSubCategory address city state country pincode businessDescription name pocJobTitle phone email status priority'
     )
     .sort({ updatedAt: -1 })
     .lean();
@@ -595,6 +597,7 @@ const searchCompanies = async (query) => {
     if (!map.has(key)) {
       map.set(key, {
         companyName: lead.companyName.trim(),
+        companyEmail: lead.companyEmail || '',
         website: lead.website || '',
         businessCategory: lead.businessCategory || '',
         businessSubCategory: lead.businessSubCategory || '',

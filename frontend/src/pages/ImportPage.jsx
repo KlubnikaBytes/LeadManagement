@@ -84,9 +84,9 @@ export const ImportPage = () => {
     }
   }
 
-  const csvTemplate = `Company Name,Business Category,Sub Category,Website,Address,City,State,Country,Pincode,Business Description,POC Name,POC Job Title,POC Phone,POC Alt Phone,POC Email,POC LinkedIn,POC Talk Notes,Type of Reach,Reach Notes,Status,Priority,Interested In,Estimated Budget,General Notes
-Sharma Enterprises,Restaurant,Cafe & Bakery,https://sharmacafe.example.com,12/A Park Street,Kolkata,West Bengal,India,700016,Family cafe planning online ordering portal,Rajesh Sharma,Managing Director,9876543210,9876543211,rajesh@sharmacafe.example.com,,Spoke briefly; excited to digitize menu,Cold Call,Direct outreach,NEW,HIGH,Mobile App Development,₹1,50,000 - ₹2,50,000,Follow up Tuesday morning
-Gupta Dental Care,Healthcare,Dental Clinic,https://guptadental.example.com,45 MG Road,Mumbai,Maharashtra,India,400001,Expanding dental practice,Dr. Priya Gupta,Owner,9123456780,,drpriya@guptadental.example.com,,Needs appointment scheduling site,Instagram,Ad campaign reply,NEW,MEDIUM,Website Development,₹75,000 - ₹1,00,000,Prefers weekend updates`
+  const csvTemplate = `Company Name,Company Email,Business Category,Sub Category,Website,Address,City,State,Country,Pincode,Business Description,POC Name,POC Job Title,POC Phone,POC Alt Phone,POC Email,POC LinkedIn,POC Talk Notes,Type of Reach,Reach Notes,Status,Priority,Interested In,Estimated Budget,General Notes
+Sharma Enterprises,info@sharmacafe.example.com,Restaurant,Cafe & Bakery,https://sharmacafe.example.com,12/A Park Street,Kolkata,West Bengal,India,700016,Family cafe planning online ordering portal,Rajesh Sharma,Managing Director,9876543210,9876543211,rajesh@sharmacafe.example.com,,Spoke briefly; excited to digitize menu,Cold Call,Direct outreach,NEW,HIGH,Mobile App Development,₹1,50,000 - ₹2,50,000,Follow up Tuesday morning
+Gupta Dental Care,contact@guptadental.example.com,Healthcare,Dental Clinic,https://guptadental.example.com,45 MG Road,Mumbai,Maharashtra,India,400001,Expanding dental practice,Dr. Priya Gupta,Owner,9123456780,,drpriya@guptadental.example.com,,Needs appointment scheduling site,Instagram,Ad campaign reply,NEW,MEDIUM,Website Development,₹75,000 - ₹1,00,000,Prefers weekend updates`
 
   const downloadCsvTemplate = () => {
     const blob = new Blob([csvTemplate], { type: 'text/csv;charset=utf-8;' })

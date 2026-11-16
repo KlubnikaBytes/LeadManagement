@@ -96,22 +96,14 @@ const processImport = async (records, user, selectedAssigneeId) => {
     const rowNum = i + 2;
     const errors = [];
 
-    // 1. Mandatory Fields & Smart Name Fallbacks
+    // 1. Mandatory Fields: At least POC Name or Company Name, plus Phone
     let name = getVal(row, 'POC Name', 'pocName', 'Name', 'name', 'Contact Person', 'contactPerson');
     const companyName = getVal(row, 'Company Name', 'companyName', 'Company', 'company', 'Business Name', 'businessName');
     const pocJobTitle = getVal(row, 'POC Job Title', 'pocJobTitle', 'Job Title', 'jobTitle', 'Designation', 'designation');
 
-    // Smart fallback if POC Name column was left blank by user:
+    // If POC name is not present in Excel, leave it blank (do NOT copy company name)
     if (!name) {
-      if (companyName && /^(dr|mr|ms|mrs|prof)\.?\s+/i.test(companyName)) {
-        name = companyName; // e.g. "Dr. Nilanjan Chandra", "Dr. Amit Dey"
-      } else if (pocJobTitle) {
-        name = pocJobTitle; // e.g. "Reception", "Manager"
-      } else if (companyName) {
-        name = companyName; // e.g. "Shapoorji Clinic & Diagnostics"
-      } else {
-        name = 'Contact Person';
-      }
+      name = '';
     }
 
     if (!name && !companyName) {
@@ -161,6 +153,7 @@ const processImport = async (records, user, selectedAssigneeId) => {
     }
 
     const email = cleanEmail(getVal(row, 'POC Email', 'pocEmail', 'Email', 'email'));
+    const companyEmail = cleanEmail(getVal(row, 'Company Email', 'companyEmail', 'Business Email', 'businessEmail', 'Official Email', 'Org Email'));
     const website = cleanWebsite(getVal(row, 'Website', 'website', 'URL', 'url'));
 
     // In-batch duplicate check
@@ -226,6 +219,7 @@ const processImport = async (records, user, selectedAssigneeId) => {
       pocLinkedIn,
       pocTalkNotes,
       companyName,
+      companyEmail,
       businessCategory,
       businessSubCategory,
       businessType: businessCategory,
@@ -272,7 +266,7 @@ const processImport = async (records, user, selectedAssigneeId) => {
         lead: lead._id,
         user: userId,
         type: 'LEAD_CREATED',
-        description: `Lead imported from file: ${lead.name}`,
+        description: `Lead imported from file: ${lead.name || lead.companyName || 'Unnamed Lead'}`,
         metadata: { source: lead.typeOfReach || lead.source, importedBulk: true },
       });
     }

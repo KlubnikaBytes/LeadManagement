@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Save, AlertCircle, Building2, User, Send, Briefcase, Globe, Phone, Mail, MapPin, MessageSquare, CheckCircle2, Search, X } from 'lucide-react'
+import { ArrowLeft, Save, AlertCircle, Building2, User, Send, Briefcase, Globe, Phone, Mail, MapPin, MessageSquare, CheckCircle2, Search, X, Check } from 'lucide-react'
 import { Country, State, City } from 'country-state-city'
 import { leadsService } from '../services/leads.service'
 import { usersService } from '../services/users.service'
@@ -164,9 +164,18 @@ export const LeadFormPage = () => {
   const { user, isAdmin, isTeamLeader } = useAuth()
   const isEdit = !!id
 
+  const backUrl = useMemo(() => {
+    const savedSearch = sessionStorage.getItem('crm_leads_search')
+    if (savedSearch) return `/leads${savedSearch.startsWith('?') ? savedSearch : `?${savedSearch}`}`
+    const savedPage = sessionStorage.getItem('crm_leads_page')
+    if (savedPage && savedPage !== '1') return `/leads?page=${savedPage}`
+    return '/leads'
+  }, [])
+
   const [form, setForm] = useState({
     // 1. Prospective Business Info
     companyName: '',
+    companyEmail: '',
     businessCategory: '',
     businessSubCategory: '',
     website: '',
@@ -274,6 +283,7 @@ export const LeadFormPage = () => {
     setForm(prev => ({
       ...prev,
       companyName: comp.companyName,
+      companyEmail: comp.companyEmail || prev.companyEmail,
       website: comp.website || prev.website,
       businessCategory: comp.businessCategory || prev.businessCategory,
       businessSubCategory: comp.businessSubCategory || prev.businessSubCategory,
@@ -286,6 +296,36 @@ export const LeadFormPage = () => {
     }))
     if (errors.companyName) setErrors(prev => ({ ...prev, companyName: '' }))
     toast.success(`Autofilled credentials for ${comp.companyName}`)
+  }
+
+  const PRIMARY_REACH_METHODS = ['Cold Call', 'WhatsApp', 'Cold Email']
+
+  // Parse selected tick methods and any 'other' method from form.typeOfReach
+  const { selectedReachTicks, otherReachMethod } = useMemo(() => {
+    const raw = (form.typeOfReach || '').split(',').map(s => s.trim()).filter(Boolean)
+    const ticks = raw.filter(item => PRIMARY_REACH_METHODS.includes(item))
+    const others = raw.filter(item => !PRIMARY_REACH_METHODS.includes(item))
+    return {
+      selectedReachTicks: ticks,
+      otherReachMethod: others.join(', '),
+    }
+  }, [form.typeOfReach])
+
+  const handleToggleReachTick = (method) => {
+    let nextTicks = [...selectedReachTicks]
+    if (nextTicks.includes(method)) {
+      nextTicks = nextTicks.filter(m => m !== method)
+    } else {
+      nextTicks.push(method)
+    }
+    const combined = [...nextTicks, ...(otherReachMethod ? [otherReachMethod] : [])]
+    handleChange('typeOfReach', combined.join(', ') || 'Cold Call')
+  }
+
+  const handleOtherReachChange = (val) => {
+    const cleanVal = (val || '').trim()
+    const combined = [...selectedReachTicks, ...(cleanVal ? [cleanVal] : [])]
+    handleChange('typeOfReach', combined.join(', ') || 'Cold Call')
   }
 
   // Click outside listener for company autocomplete dropdown
@@ -374,6 +414,7 @@ export const LeadFormPage = () => {
         setForm({
           // 1. Business Info
           companyName: lead.companyName || '',
+          companyEmail: lead.companyEmail || '',
           businessCategory: lead.businessCategory || lead.businessType || '',
           businessSubCategory: lead.businessSubCategory || '',
           website: lead.website || '',
@@ -413,10 +454,10 @@ export const LeadFormPage = () => {
 
   const validate = () => {
     const e = {}
-    if (!form.companyName.trim()) e.companyName = 'Company / Business name is required'
-    if (!form.name.trim()) e.name = 'POC name is required'
-    if (!form.phone.trim()) e.phone = 'POC phone number is required'
+    if (!form.companyName.trim() && !form.name.trim()) e.companyName = 'Company name or POC name is required'
+    if (!form.phone.trim()) e.phone = 'Phone number is required'
     if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) e.email = 'Invalid email address'
+    if (form.companyEmail && !/^\S+@\S+\.\S+$/.test(form.companyEmail)) e.companyEmail = 'Invalid company email address'
     if (form.phone && !/^\+?[0-9]{7,15}$/.test(form.phone.replace(/[\s-]/g, ''))) e.phone = 'Invalid phone number'
     setErrors(e)
     return Object.keys(e).length === 0
@@ -487,7 +528,7 @@ export const LeadFormPage = () => {
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in pb-12">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Link to="/leads" className="btn-ghost text-sm">
+        <Link to={isEdit ? `/leads/${id}` : backUrl} className="btn-ghost text-sm">
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <div>
@@ -617,6 +658,16 @@ export const LeadFormPage = () => {
               />
             </FormGroup>
 
+            <FormGroup label="Company / Business Email" error={errors.companyEmail}>
+              <input
+                type="email"
+                className={`input ${errors.companyEmail ? 'border-kb-crimson' : ''}`}
+                placeholder="e.g. contact@business.com"
+                value={form.companyEmail}
+                onChange={e => handleChange('companyEmail', e.target.value)}
+              />
+            </FormGroup>
+
             <FormGroup label="Business Category">
               <CustomSelect
                 placeholder="Select category"
@@ -737,11 +788,11 @@ export const LeadFormPage = () => {
           description="Details of the person you are communicating with, title, and conversation notes"
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormGroup label="POC Name (Full Name)" required error={errors.name}>
+            <FormGroup label="POC Name (Full Name)" error={errors.name}>
               <input
                 type="text"
                 className={`input ${errors.name ? 'border-kb-crimson' : ''}`}
-                placeholder="e.g. Rajesh Sharma"
+                placeholder="e.g. Rajesh Sharma (Optional)"
                 value={form.name}
                 onChange={e => handleChange('name', e.target.value)}
               />
@@ -819,19 +870,80 @@ export const LeadFormPage = () => {
           title="3. Type of Reach"
           description="How did you or the team reach out to this prospective lead?"
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormGroup label="Outreach Method / Type of Reach" required>
-              <CustomSelect
-                placeholder="Select reach method"
-                value={form.typeOfReach}
-                onChange={v => handleChange('typeOfReach', v)}
-                options={Array.from(new Set([...REACH_TYPES, ...(dynamicOptions.reachTypes || [])]))}
-                canAddCustom={isAdmin}
-                onAddCustom={val => handleAddCustomOption('typeOfReach', val)}
-                otherLabel="Other"
-                otherPlaceholder="Specify other outreach method..."
-              />
-            </FormGroup>
+          <div className="space-y-4">
+            <div>
+              <label className="label mb-2 block">
+                Outreach Method / Type of Reach <span className="text-kb-strawberry">*</span>
+              </label>
+
+              {/* 3 Quick Tick Options: Cold Call, WhatsApp, Cold Email */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  { id: 'Cold Call', label: 'Cold Call', icon: Phone },
+                  { id: 'WhatsApp', label: 'WhatsApp', icon: MessageSquare },
+                  { id: 'Cold Email', label: 'Cold Email', icon: Mail },
+                ].map(item => {
+                  const isChecked = selectedReachTicks.includes(item.id)
+                  const ItemIcon = item.icon
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleToggleReachTick(item.id)}
+                      className={`flex items-center gap-2.5 p-3 rounded-xl border text-sm font-medium transition-all text-left ${
+                        isChecked
+                          ? 'bg-kb-strawberry-tint border-kb-strawberry text-kb-cocoa shadow-xs'
+                          : 'bg-kb-white border-kb-sand text-kb-cocoa hover:border-kb-umber'
+                      }`}
+                    >
+                      <div
+                        className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${
+                          isChecked
+                            ? 'bg-kb-strawberry border-kb-strawberry text-kb-white'
+                            : 'border-kb-sand bg-kb-parchment'
+                        }`}
+                      >
+                        {isChecked && <Check className="w-3 h-3 stroke-[3]" />}
+                      </div>
+                      <ItemIcon className={`w-4 h-4 ${isChecked ? 'text-kb-strawberry' : 'text-kb-umber'}`} />
+                      <span className="flex-1 font-semibold">{item.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Others Dropdown */}
+              <div className="mt-3">
+                <label className="text-xs font-semibold text-kb-muted mb-1 block">
+                  Other Outreach Channels (Dropdown)
+                </label>
+                <CustomSelect
+                  placeholder="Select other channel (e.g. LinkedIn, Website, Referral)..."
+                  value={otherReachMethod}
+                  onChange={handleOtherReachChange}
+                  options={Array.from(
+                    new Set([
+                      ...REACH_TYPES.filter(r => !PRIMARY_REACH_METHODS.includes(r)),
+                      ...(dynamicOptions.reachTypes || []).filter(r => !PRIMARY_REACH_METHODS.includes(r)),
+                    ])
+                  )}
+                  canAddCustom={isAdmin}
+                  onAddCustom={val => handleAddCustomOption('typeOfReach', val)}
+                  otherLabel="Other Custom Channel"
+                  otherPlaceholder="Type custom channel..."
+                />
+              </div>
+
+              {/* Selected summary */}
+              {form.typeOfReach && (
+                <div className="text-xs text-kb-muted flex items-center gap-2 pt-2">
+                  <span className="font-semibold text-kb-cocoa">Selected Reach:</span>
+                  <span className="bg-kb-cream-deep border border-kb-sand px-2.5 py-0.5 rounded-full font-bold text-kb-strawberry">
+                    {form.typeOfReach}
+                  </span>
+                </div>
+              )}
+            </div>
 
             <FormGroup label="Reach Campaign / Channel Details">
               <input
@@ -1051,7 +1163,7 @@ export const LeadFormPage = () => {
 
         {/* Submit Actions */}
         <div className="flex items-center gap-3 justify-end pt-2">
-          <Link to={isEdit ? `/leads/${id}` : '/leads'} className="btn-secondary">Cancel</Link>
+          <Link to={isEdit ? `/leads/${id}` : backUrl} className="btn-secondary">Cancel</Link>
           <button type="submit" disabled={loading} className="btn-primary px-8 py-2.5">
             <Save className="w-4 h-4" />
             {loading ? 'Saving...' : isEdit ? 'Update Lead' : 'Save Lead'}
