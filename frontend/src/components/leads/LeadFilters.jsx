@@ -165,7 +165,15 @@ export const LeadFilters = ({ filters, onChange, salesUsers = [] }) => {
             <input
               type="date"
               value={filters.startDate || ''}
-              onChange={(e) => handleChange('startDate', e.target.value)}
+              max={filters.endDate || undefined}
+              onChange={(e) => {
+                const newStart = e.target.value
+                if (filters.endDate && newStart && newStart > filters.endDate) {
+                  onChange({ ...filters, startDate: newStart, endDate: newStart })
+                } else {
+                  handleChange('startDate', newStart)
+                }
+              }}
               className="input py-1 px-2.5 text-xs bg-kb-white border border-kb-sand rounded-lg"
             />
           </div>
@@ -174,7 +182,15 @@ export const LeadFilters = ({ filters, onChange, salesUsers = [] }) => {
             <input
               type="date"
               value={filters.endDate || ''}
-              onChange={(e) => handleChange('endDate', e.target.value)}
+              min={filters.startDate || undefined}
+              onChange={(e) => {
+                const newEnd = e.target.value
+                if (filters.startDate && newEnd && newEnd < filters.startDate) {
+                  onChange({ ...filters, startDate: newEnd, endDate: newEnd })
+                } else {
+                  handleChange('endDate', newEnd)
+                }
+              }}
               className="input py-1 px-2.5 text-xs bg-kb-white border border-kb-sand rounded-lg"
             />
           </div>

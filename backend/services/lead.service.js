@@ -147,6 +147,14 @@ const getLeads = async (query, user) => {
       }
     }
 
+    if (rangeStart && rangeEnd && rangeStart > rangeEnd) {
+      const temp = rangeStart;
+      rangeStart = rangeEnd;
+      rangeEnd = temp;
+      rangeStart.setHours(0, 0, 0, 0);
+      rangeEnd.setHours(23, 59, 59, 999);
+    }
+
     if (rangeStart || rangeEnd) {
       const dateCondition = {};
       if (rangeStart) dateCondition.$gte = rangeStart;

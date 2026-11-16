@@ -52,10 +52,16 @@ export const LeadsPage = () => {
   const debouncedSearch = useDebounce(searchQuery, 500)
 
   const applyFilters = (nextFilters) => {
-    setFilters(nextFilters)
+    const sanitizedFilters = { ...nextFilters }
+    if (sanitizedFilters.startDate && sanitizedFilters.endDate && sanitizedFilters.startDate > sanitizedFilters.endDate) {
+      const temp = sanitizedFilters.startDate
+      sanitizedFilters.startDate = sanitizedFilters.endDate
+      sanitizedFilters.endDate = temp
+    }
+    setFilters(sanitizedFilters)
     setPage(1)
     const nextParams = new URLSearchParams()
-    Object.entries(nextFilters).forEach(([k, v]) => { if (v) nextParams.set(k, v) })
+    Object.entries(sanitizedFilters).forEach(([k, v]) => { if (v) nextParams.set(k, v) })
     const qs = nextParams.toString()
     navigate(qs ? `/leads?${qs}` : '/leads', { replace: true })
   }
@@ -81,6 +87,11 @@ export const LeadsPage = () => {
       search: debouncedSearch || undefined,
       sortBy,
     }
+    if (queryParams.startDate && queryParams.endDate && queryParams.startDate > queryParams.endDate) {
+      const temp = queryParams.startDate
+      queryParams.startDate = queryParams.endDate
+      queryParams.endDate = temp
+    }
     Object.keys(queryParams).forEach(k => !queryParams[k] && delete queryParams[k])
     fetchLeads(queryParams)
   }, [page, filters, debouncedSearch, sortBy, fetchLeads])
@@ -105,6 +116,11 @@ export const LeadsPage = () => {
     setExporting(true)
     try {
       const exportParams = { ...filters, search: debouncedSearch || undefined }
+      if (exportParams.startDate && exportParams.endDate && exportParams.startDate > exportParams.endDate) {
+        const temp = exportParams.startDate
+        exportParams.startDate = exportParams.endDate
+        exportParams.endDate = temp
+      }
       Object.keys(exportParams).forEach((k) => !exportParams[k] && delete exportParams[k])
       const res = await leadsService.export(exportParams)
       const memberId = filters.member || filters.createdBy || filters.assignedTo
