@@ -19,18 +19,11 @@ const setTokenCookie = (res, token) => {
   });
 };
 
-const signupAdmin = async (req, res, next) => {
-  try {
-    const { name, email, password } = req.body;
-    if (!name || !email || !password) {
-      return res.status(400).json({ success: false, message: 'Name, email, and password are required' });
-    }
-    const { user, token } = await registerAdmin({ name, email, password });
-    setTokenCookie(res, token);
-    res.status(201).json({ success: true, data: { user, token } });
-  } catch (err) {
-    next(err);
-  }
+const signupAdmin = async (req, res) => {
+  return res.status(403).json({
+    success: false,
+    message: 'Admin self-registration is disabled. Please contact the system administrator.',
+  });
 };
 
 const login = async (req, res, next) => {
@@ -82,4 +75,26 @@ const logout = (req, res) => {
   res.json({ success: true, message: 'Logged out successfully' });
 };
 
-module.exports = { login, getProfile, getSession, logout, signupAdmin };
+const updateProfile = async (req, res, next) => {
+  try {
+    const { name, phone } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, message: 'Name is required' });
+    }
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    user.name = name.trim();
+    if (phone !== undefined) {
+      user.phone = phone.trim();
+    }
+    await user.save();
+    req.app.get('io')?.emit('user_updated');
+    res.json({ success: true, data: user });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { login, getProfile, getSession, logout, signupAdmin, updateProfile };

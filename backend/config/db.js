@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const dns = require('dns');
+const syncAdmin = require('./initAdmin');
 
 // Fix for Windows / ISP DNS querySrv ECONNREFUSED error
 dns.setServers(['8.8.8.8', '8.8.4.4']);
@@ -10,6 +11,7 @@ const connectDB = async () => {
       serverSelectionTimeoutMS: 5000,
     });
     console.log(`MongoDB Connected: ${conn.connection.host}`);
+    await syncAdmin();
   } catch (error) {
     console.error('MongoDB connection error:', error.message);
     process.exit(1);

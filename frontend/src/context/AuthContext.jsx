@@ -63,6 +63,10 @@ export const AuthProvider = ({ children }) => {
     toast.success('Logged out successfully')
   }, [])
 
+  const updateCurrentUser = useCallback((userData) => {
+    setUser(prev => prev ? ({ ...prev, ...userData }) : prev)
+  }, [])
+
   const isAdmin = user?.role === 'ADMIN'
   const isTeamLeader = user?.role === 'TEAM_LEADER'
   const isSalesExec = user?.role === 'SALES_EXECUTIVE'
@@ -72,7 +76,7 @@ export const AuthProvider = ({ children }) => {
   const canAssign = isAdmin
 
   return (
-    <AuthContext.Provider value={{ user, loading, initializing, login, signup, logout, isAdmin, isTeamLeader, isSalesExec, canManageUsers, canImport, canDelete, canAssign }}>
+    <AuthContext.Provider value={{ user, loading, initializing, login, signup, logout, updateCurrentUser, isAdmin, isTeamLeader, isSalesExec, canManageUsers, canImport, canDelete, canAssign }}>
       {children}
     </AuthContext.Provider>
   )

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Eye, EyeOff, LogIn } from 'lucide-react'
 
@@ -126,13 +126,6 @@ export const LoginPage = () => {
                 )}
               </button>
             </form>
-
-            {/* Signup Link */}
-            <div className="mt-6 pt-6 border-t border-kb-sand text-center">
-              <p className="text-sm text-kb-muted">
-                First time setup? <Link to="/signup" className="text-kb-strawberry hover:text-kb-strawberry-hover font-semibold">Create Admin Account</Link>
-              </p>
-            </div>
           </div>
         </div>
       </div>
