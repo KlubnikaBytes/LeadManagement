@@ -19,6 +19,7 @@ const leadSchema = new mongoose.Schema(
     // Prospective Business Information
     companyName: { type: String, trim: true },
     companyEmail: { type: String, lowercase: true, trim: true, default: '' },
+    companyPhone: { type: String, trim: true, default: '' },
     businessCategory: { type: String, trim: true, index: true },
     businessSubCategory: { type: String, trim: true },
     businessType: { type: String, trim: true }, // Legacy/alias for businessCategory

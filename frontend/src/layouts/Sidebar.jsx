@@ -66,7 +66,7 @@ export const Sidebar = ({ onClose }) => {
           </div>
           <div className="min-w-0">
             <p className="font-bold text-kb-white text-sm leading-none truncate">KlubCRM</p>
-            <p className="text-xs text-kb-taupe mt-1 truncate">Klubnika Bytes</p>
+            <p className="text-[11px] text-kb-taupe mt-1 truncate tracking-tight">A Klubnika Bytes (KB) Product</p>
           </div>
         </div>
         {onClose && (

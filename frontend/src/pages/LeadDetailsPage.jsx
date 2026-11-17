@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   Phone, Mail, Globe, MapPin, Calendar, Edit, ArrowLeft, Building2, User,
   Clock, Tag, DollarSign, Send, Briefcase, ExternalLink, MessageSquare, Lock, UserCheck,
-  Users, Plus
+  Users, Plus, PhoneCall
 } from 'lucide-react'
 
 const LinkedinIcon = ({ className = "w-4 h-4" }) => (
@@ -317,6 +317,23 @@ export const LeadDetailsPage = () => {
                   </div>
                 </a>
               )}
+
+              {lead.companyPhone && (
+                <a
+                  href={`tel:${lead.companyPhone}`}
+                  className="flex items-center gap-3 p-2.5 bg-kb-cream-deep hover:bg-kb-cream border border-kb-sand rounded-xl transition-colors group"
+                >
+                  <div className="w-8 h-8 bg-kb-white border border-kb-sand rounded-lg flex items-center justify-center">
+                    <Phone className="w-4 h-4 text-kb-umber" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-kb-muted">Company / Business Phone</p>
+                    <p className="text-sm font-mono text-kb-cocoa group-hover:text-kb-strawberry transition-colors truncate">
+                      {lead.companyPhone}
+                    </p>
+                  </div>
+                </a>
+              )}
             </div>
           </div>
 
@@ -487,9 +504,24 @@ export const LeadDetailsPage = () => {
           <div className="card p-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {canViewSales && (
               <>
-                <div className="bg-kb-cream-deep rounded-xl p-2.5 border border-kb-sand">
-                  <p className="text-kb-muted text-xs">📞 Total Calls</p>
-                  <p className="text-sm font-bold text-kb-cocoa mt-0.5">{lead.totalCalls}</p>
+                <div className="bg-kb-cream-deep rounded-xl p-2.5 border border-kb-sand flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <p className="text-kb-muted text-xs">📞 Total Calls</p>
+                    <button
+                      type="button"
+                      onClick={() => setModal('call')}
+                      className="text-[10px] text-kb-strawberry hover:underline font-semibold"
+                      title="Log a new call"
+                    >
+                      + Log Call
+                    </button>
+                  </div>
+                  <p className="text-sm font-bold text-kb-cocoa mt-0.5">
+                    {lead.totalCalls || 0}
+                    <span className="text-xs font-normal text-kb-muted ml-1">
+                      {(lead.totalCalls || 0) === 1 ? 'call' : 'calls'}
+                    </span>
+                  </p>
                 </div>
                 <div className="bg-kb-cream-deep rounded-xl p-2.5 border border-kb-sand">
                   <p className="text-kb-muted text-xs">🕒 Last Contact</p>
@@ -575,6 +607,13 @@ export const LeadDetailsPage = () => {
                         value={lead.companyEmail}
                         isLink
                         linkHref={lead.companyEmail ? `mailto:${lead.companyEmail}` : null}
+                      />
+                      <DetailItem
+                        icon={Phone}
+                        label="Company / Business Phone"
+                        value={lead.companyPhone}
+                        isLink={!!lead.companyPhone}
+                        linkHref={lead.companyPhone ? `tel:${lead.companyPhone}` : null}
                       />
                       <DetailItem
                         icon={Tag}
@@ -754,6 +793,11 @@ export const LeadDetailsPage = () => {
                             icon={Calendar}
                             label="Next Scheduled Follow-up"
                             value={lead.nextFollowUpAt ? formatDateTime(lead.nextFollowUpAt) : 'None scheduled'}
+                          />
+                          <DetailItem
+                            icon={PhoneCall}
+                            label="Total Calls Made / Logged"
+                            value={`${lead.totalCalls || 0} ${(lead.totalCalls || 0) === 1 ? 'call' : 'calls'}`}
                           />
                         </div>
 

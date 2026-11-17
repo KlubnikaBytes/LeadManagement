@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Save, AlertCircle, Building2, User, Send, Briefcase, Globe, Phone, Mail, MapPin, MessageSquare, CheckCircle2, Search, X, Check } from 'lucide-react'
+import { ArrowLeft, Save, AlertCircle, Building2, User, Send, Briefcase, Globe, Phone, Mail, MapPin, MessageSquare, CheckCircle2, Search, X, Check, PhoneCall } from 'lucide-react'
 import { Country, State, City } from 'country-state-city'
 import { leadsService } from '../services/leads.service'
 import { usersService } from '../services/users.service'
 import { useAuth } from '../context/AuthContext'
+import { toLocalDatetimeInput, toUtcIsoString } from '../utils/helpers'
 import {
   BUSINESS_CATEGORIES,
   BUSINESS_CATEGORIES_MAP,
@@ -176,6 +177,7 @@ export const LeadFormPage = () => {
     // 1. Prospective Business Info
     companyName: '',
     companyEmail: '',
+    companyPhone: '',
     businessCategory: '',
     businessSubCategory: '',
     website: '',
@@ -207,6 +209,7 @@ export const LeadFormPage = () => {
     assignedTo: '',
     assignedByName: '',
     nextFollowUpAt: '',
+    totalCalls: 0,
     notes: '',
   })
 
@@ -284,6 +287,7 @@ export const LeadFormPage = () => {
       ...prev,
       companyName: comp.companyName,
       companyEmail: comp.companyEmail || prev.companyEmail,
+      companyPhone: comp.companyPhone || prev.companyPhone,
       website: comp.website || prev.website,
       businessCategory: comp.businessCategory || prev.businessCategory,
       businessSubCategory: comp.businessSubCategory || prev.businessSubCategory,
@@ -415,6 +419,7 @@ export const LeadFormPage = () => {
           // 1. Business Info
           companyName: lead.companyName || '',
           companyEmail: lead.companyEmail || '',
+          companyPhone: lead.companyPhone || '',
           businessCategory: lead.businessCategory || lead.businessType || '',
           businessSubCategory: lead.businessSubCategory || '',
           website: lead.website || '',
@@ -445,7 +450,8 @@ export const LeadFormPage = () => {
           status: lead.status || 'NEW',
           assignedTo: lead.assignedTo?._id || '',
           assignedByName: currentAssignedByName,
-          nextFollowUpAt: lead.nextFollowUpAt ? new Date(lead.nextFollowUpAt).toISOString().slice(0, 16) : '',
+          nextFollowUpAt: toLocalDatetimeInput(lead.nextFollowUpAt),
+          totalCalls: lead.totalCalls !== undefined ? lead.totalCalls : 0,
           notes: lead.notes || '',
         })
       }).catch(() => navigate('/leads')).finally(() => setLoadingLead(false))
@@ -490,7 +496,12 @@ export const LeadFormPage = () => {
     try {
       const data = { ...form }
       if (!data.assignedTo) delete data.assignedTo
-      if (!data.nextFollowUpAt) delete data.nextFollowUpAt
+      if (data.nextFollowUpAt) {
+        data.nextFollowUpAt = toUtcIsoString(data.nextFollowUpAt)
+      } else {
+        delete data.nextFollowUpAt
+      }
+      data.totalCalls = Number(data.totalCalls) || 0
       if (!data.notes) delete data.notes
       if (!data.pocTalkNotes) delete data.pocTalkNotes
       if (!data.businessDescription) delete data.businessDescription
@@ -665,6 +676,16 @@ export const LeadFormPage = () => {
                 placeholder="e.g. contact@business.com"
                 value={form.companyEmail}
                 onChange={e => handleChange('companyEmail', e.target.value)}
+              />
+            </FormGroup>
+
+            <FormGroup label="Company / Business Phone" error={errors.companyPhone}>
+              <input
+                type="tel"
+                className={`input ${errors.companyPhone ? 'border-kb-crimson' : ''}`}
+                placeholder="e.g. +91 33 2222 3333 or 1800-..."
+                value={form.companyPhone}
+                onChange={e => handleChange('companyPhone', e.target.value)}
               />
             </FormGroup>
 
@@ -1007,6 +1028,17 @@ export const LeadFormPage = () => {
                 className="input"
                 value={form.nextFollowUpAt}
                 onChange={e => handleChange('nextFollowUpAt', e.target.value)}
+              />
+            </FormGroup>
+
+            <FormGroup label="Total Calls Made / Logged">
+              <input
+                type="number"
+                min="0"
+                className="input"
+                placeholder="0"
+                value={form.totalCalls}
+                onChange={e => handleChange('totalCalls', Math.max(0, parseInt(e.target.value, 10) || 0))}
               />
             </FormGroup>
           </div>

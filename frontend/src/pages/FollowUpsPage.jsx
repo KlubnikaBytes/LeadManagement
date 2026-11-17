@@ -8,7 +8,7 @@ import { Pagination } from '../components/ui/Pagination'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { EmptyState } from '../components/ui/EmptyState'
 import { Modal } from '../components/ui/Modal'
-import { formatDate, isFollowUpOverdue } from '../utils/helpers'
+import { formatDate, isFollowUpOverdue, toUtcIsoString } from '../utils/helpers'
 import toast from 'react-hot-toast'
 
 const TabButton = ({ active, onClick, children, count }) => (
@@ -82,7 +82,8 @@ export const FollowUpsPage = () => {
   const handleReschedule = async () => {
     if (!newDate) { toast.error('Select a new date'); return }
     try {
-      await followupsService.update(rescheduleModal._id, { followUpDate: newDate, rescheduleNote })
+      const isoDate = toUtcIsoString(newDate)
+      await followupsService.update(rescheduleModal._id, { followUpDate: isoDate, rescheduleNote })
       toast.success('Follow-up rescheduled!')
       setRescheduleModal(null)
       setNewDate('')

@@ -203,6 +203,8 @@ const importLeads = async (req, res, next) => {
 const EXPORT_HEADERS = [
   // 1. Prospective Business Info
   'Company Name',
+  'Company Email',
+  'Company Phone',
   'Business Category',
   'Sub Category',
   'Website',
@@ -253,6 +255,7 @@ const exportLeads = async (req, res, next) => {
       return {
         'Company Name': l.companyName || '',
         'Company Email': l.companyEmail || '',
+        'Company Phone': l.companyPhone || '',
         'Business Category': l.businessCategory || l.businessType || '',
         'Sub Category': l.businessSubCategory || '',
         Website: l.website || '',
@@ -316,6 +319,7 @@ const getImportTemplate = async (req, res, next) => {
       {
         'Company Name': 'Sharma Enterprises',
         'Company Email': 'info@sharmacafe.example.com',
+        'Company Phone': '+91 33 2222 3333',
         'Business Category': 'Restaurant',
         'Sub Category': 'Cafe & Bakery',
         'Website': 'https://sharmacafe.example.com',

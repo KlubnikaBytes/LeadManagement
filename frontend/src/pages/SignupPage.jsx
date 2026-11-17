@@ -56,7 +56,7 @@ export const SignupPage = () => {
             </div>
             <div>
               <h1 className="text-xl font-bold text-kb-cocoa">KlubCRM</h1>
-              <p className="text-xs text-kb-muted">Klubnika Bytes</p>
+              <p className="text-xs text-kb-muted">A Klubnika Bytes (KB) Product</p>
             </div>
           </div>
 

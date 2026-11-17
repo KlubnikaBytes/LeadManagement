@@ -49,6 +49,23 @@ export const formatPhone = (phone) => {
   return phone
 }
 
+// Format date into local "YYYY-MM-DDTHH:mm" for <input type="datetime-local" />
+export const toLocalDatetimeInput = (dateInput) => {
+  if (!dateInput) return ''
+  const d = new Date(dateInput)
+  if (isNaN(d.getTime())) return ''
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+// Convert local datetime-local value to ISO string with UTC indicator
+export const toUtcIsoString = (localDatetimeStr) => {
+  if (!localDatetimeStr) return null
+  const d = new Date(localDatetimeStr)
+  if (isNaN(d.getTime())) return null
+  return d.toISOString()
+}
+
 export const sanitizeFilename = (name) =>
   String(name || 'export')
     .toLowerCase()

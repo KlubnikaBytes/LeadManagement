@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Modal } from '../ui/Modal'
 import { leadsService } from '../../services/leads.service'
 import { FOLLOWUP_TYPES } from '../../utils/constants'
+import { toUtcIsoString } from '../../utils/helpers'
 import toast from 'react-hot-toast'
 
 export const FollowUpModal = ({ isOpen, onClose, lead, onSuccess }) => {
@@ -18,7 +19,8 @@ export const FollowUpModal = ({ isOpen, onClose, lead, onSuccess }) => {
     }
     setLoading(true)
     try {
-      await leadsService.createFollowUp(lead._id, { followUpDate, type, note })
+      const isoDate = toUtcIsoString(followUpDate)
+      await leadsService.createFollowUp(lead._id, { followUpDate: isoDate, type, note })
       toast.success('Follow-up scheduled!')
       onSuccess?.()
       onClose()

@@ -103,7 +103,7 @@ export const LeadsPage = () => {
 
   useEffect(() => {
     if (isAdmin || isTeamLeader) {
-      usersService.getSalesUsers().then(res => setSalesUsers(res.data.data)).catch(() => {})
+      usersService.getSalesUsers().then(res => setSalesUsers(res.data.data)).catch(() => { })
     }
   }, [isAdmin, isTeamLeader])
 
@@ -137,7 +137,7 @@ export const LeadsPage = () => {
       await leadsService.delete(lead._id)
       toast.success('Lead deleted')
       loadLeads()
-    } catch {}
+    } catch { }
   }
 
   const handleExport = async () => {
@@ -209,18 +209,16 @@ export const LeadsPage = () => {
               <button
                 type="button"
                 onClick={() => applyFilters({ ...filters, mine: '' })}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                  !filters.mine ? 'bg-kb-strawberry text-kb-white' : 'text-kb-muted hover:text-kb-cocoa'
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${!filters.mine ? 'bg-kb-strawberry text-kb-white' : 'text-kb-muted hover:text-kb-cocoa'
+                  }`}
               >
                 All Clients
               </button>
               <button
                 type="button"
                 onClick={() => applyFilters({ ...filters, mine: 'true' })}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                  filters.mine === 'true' ? 'bg-kb-strawberry text-kb-white' : 'text-kb-muted hover:text-kb-cocoa'
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${filters.mine === 'true' ? 'bg-kb-strawberry text-kb-white' : 'text-kb-muted hover:text-kb-cocoa'
+                  }`}
               >
                 My Assigned
               </button>
@@ -290,10 +288,10 @@ export const LeadsPage = () => {
                     filters.startDate && filters.endDate
                       ? `${filters.startDate} to ${filters.endDate}`
                       : filters.startDate
-                      ? `From ${filters.startDate}`
-                      : filters.endDate
-                      ? `Until ${filters.endDate}`
-                      : 'Custom Range'
+                        ? `From ${filters.startDate}`
+                        : filters.endDate
+                          ? `Until ${filters.endDate}`
+                          : 'Custom Range'
                   )}
                   {filters.dateField === 'lastContactedAt' && ' (Last Contact)'}
                   {filters.dateField === 'nextFollowUpAt' && ' (Next Follow-up)'}

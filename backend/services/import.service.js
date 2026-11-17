@@ -154,6 +154,7 @@ const processImport = async (records, user, selectedAssigneeId) => {
 
     const email = cleanEmail(getVal(row, 'POC Email', 'pocEmail', 'Email', 'email'));
     const companyEmail = cleanEmail(getVal(row, 'Company Email', 'companyEmail', 'Business Email', 'businessEmail', 'Official Email', 'Org Email'));
+    const companyPhone = getVal(row, 'Company Phone', 'companyPhone', 'Business Phone', 'businessPhone', 'Company Contact', 'companyContact', 'Office Phone', 'officePhone');
     const website = cleanWebsite(getVal(row, 'Website', 'website', 'URL', 'url'));
 
     // In-batch duplicate check
@@ -220,6 +221,7 @@ const processImport = async (records, user, selectedAssigneeId) => {
       pocTalkNotes,
       companyName,
       companyEmail,
+      companyPhone,
       businessCategory,
       businessSubCategory,
       businessType: businessCategory,

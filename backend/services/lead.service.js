@@ -41,7 +41,7 @@ const sanitizeLeadForUser = (leadDoc, user) => {
 
 const getLeads = async (query, user) => {
   const {
-    page = 1, limit = 20, search, status, source, typeOfReach, businessCategory,
+    page = 1, limit = 20, search, status, source, typeOfReach, businessCategory, businessSubCategory,
     assignedTo, createdBy, member, mine, priority, followUp, sortBy = 'createdAt', sortOrder = 'desc',
     dateField = 'createdAt', dateRange, startDate, endDate,
   } = query;
@@ -90,6 +90,7 @@ const getLeads = async (query, user) => {
   if (source) filter.source = source;
   if (typeOfReach) andConditions.push({ $or: [{ typeOfReach }, { source: typeOfReach }] });
   if (businessCategory) andConditions.push({ $or: [{ businessCategory }, { businessType: businessCategory }] });
+  if (businessSubCategory) filter.businessSubCategory = businessSubCategory;
   if (user.role !== 'SALES_EXECUTIVE') {
     if (member) {
       andConditions.push({ $or: [{ assignedTo: member }, { createdBy: member }] });
@@ -302,6 +303,9 @@ const createLead = async (data, user) => {
   });
 
   const leadPayload = { ...data, createdBy: userId };
+  if (data.totalCalls !== undefined) {
+    leadPayload.totalCalls = Math.max(0, Number(data.totalCalls) || 0);
+  }
   if (userRole === 'ADMIN') {
     if (leadPayload.assignedTo) {
       leadPayload.primaryAssignedTo = leadPayload.primaryAssignedTo || leadPayload.assignedTo;
@@ -389,6 +393,9 @@ const updateLead = async (id, data, userId, userRole) => {
   // Preserve original primaryAssignedTo unless never set
   const incomingAssignedTo = data.assignedTo;
   delete data.primaryAssignedTo;
+  if (data.totalCalls !== undefined) {
+    data.totalCalls = Math.max(0, Number(data.totalCalls) || 0);
+  }
   Object.assign(lead, data);
 
   if (data.status && data.status !== oldStatus) {
