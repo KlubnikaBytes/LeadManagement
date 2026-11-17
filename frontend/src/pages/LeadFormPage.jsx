@@ -208,6 +208,7 @@ export const LeadFormPage = () => {
     status: 'NEW',
     assignedTo: '',
     assignedByName: '',
+    lastContactedAt: '',
     nextFollowUpAt: '',
     totalCalls: 0,
     notes: '',
@@ -450,6 +451,7 @@ export const LeadFormPage = () => {
           status: lead.status || 'NEW',
           assignedTo: lead.assignedTo?._id || '',
           assignedByName: currentAssignedByName,
+          lastContactedAt: toLocalDatetimeInput(lead.lastContactedAt),
           nextFollowUpAt: toLocalDatetimeInput(lead.nextFollowUpAt),
           totalCalls: lead.totalCalls !== undefined ? lead.totalCalls : 0,
           notes: lead.notes || '',
@@ -495,12 +497,17 @@ export const LeadFormPage = () => {
     try {
       const data = { ...form }
       if (!data.assignedTo) delete data.assignedTo
+      if (data.lastContactedAt) {
+        data.lastContactedAt = toUtcIsoString(data.lastContactedAt)
+      } else {
+        data.lastContactedAt = null
+      }
       if (data.nextFollowUpAt) {
         data.nextFollowUpAt = toUtcIsoString(data.nextFollowUpAt)
       } else {
-        delete data.nextFollowUpAt
+        data.nextFollowUpAt = null
       }
-      data.totalCalls = Number(data.totalCalls) || 0
+      data.totalCalls = Math.max(0, Number(data.totalCalls) || 0)
       if (!data.notes) delete data.notes
       if (!data.pocTalkNotes) delete data.pocTalkNotes
       if (!data.businessDescription) delete data.businessDescription
@@ -1021,6 +1028,16 @@ export const LeadFormPage = () => {
               />
             </FormGroup>
 
+            <FormGroup label="Last Contact Date & Time">
+              <input
+                type="datetime-local"
+                className="input"
+                value={form.lastContactedAt}
+                onChange={e => handleChange('lastContactedAt', e.target.value)}
+              />
+              <span className="text-[11px] text-kb-muted mt-0.5 block">When lead was last reached out (empty for Never)</span>
+            </FormGroup>
+
             <FormGroup label="Next Follow-up Date & Time">
               <input
                 type="datetime-local"
@@ -1028,6 +1045,7 @@ export const LeadFormPage = () => {
                 value={form.nextFollowUpAt}
                 onChange={e => handleChange('nextFollowUpAt', e.target.value)}
               />
+              <span className="text-[11px] text-kb-muted mt-0.5 block">Scheduled upcoming follow-up date</span>
             </FormGroup>
 
             <FormGroup label="Total Calls Made / Logged">
@@ -1039,6 +1057,7 @@ export const LeadFormPage = () => {
                 value={form.totalCalls}
                 onChange={e => handleChange('totalCalls', Math.max(0, parseInt(e.target.value, 10) || 0))}
               />
+              <span className="text-[11px] text-kb-muted mt-0.5 block">Independent manual call counter</span>
             </FormGroup>
           </div>
 

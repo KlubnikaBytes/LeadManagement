@@ -21,8 +21,9 @@ import { NoteModal } from '../components/modals/NoteModal'
 import { StatusModal } from '../components/modals/StatusModal'
 import { AssignModal } from '../components/modals/AssignModal'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
+import { Modal } from '../components/ui/Modal'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
-import { formatDate, formatDateTime, formatRelative, isFollowUpOverdue, isFollowUpToday } from '../utils/helpers'
+import { formatDate, formatDateTime, formatRelative, isFollowUpOverdue, isFollowUpToday, toLocalDatetimeInput, toUtcIsoString } from '../utils/helpers'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import { useSocketEvent } from '../hooks/useSocketEvent'
@@ -66,6 +67,9 @@ export const LeadDetailsPage = () => {
   const [activitiesLoading, setActivitiesLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('overview')
   const [modal, setModal] = useState(null)
+  const [editLastContactDate, setEditLastContactDate] = useState('')
+  const [editTotalCallsCount, setEditTotalCallsCount] = useState(0)
+  const [savingQuickMetric, setSavingQuickMetric] = useState(false)
 
   const fetchLead = async () => {
     try {
@@ -110,6 +114,59 @@ export const LeadDetailsPage = () => {
 
   const handleModalSuccess = () => {
     fetchLead()
+  }
+
+  const openEditLastContact = () => {
+    setEditLastContactDate(toLocalDatetimeInput(lead?.lastContactedAt))
+    setModal('editLastContact')
+  }
+
+  const handleSaveLastContact = async (e) => {
+    e.preventDefault()
+    setSavingQuickMetric(true)
+    try {
+      const isoDate = editLastContactDate ? toUtcIsoString(editLastContactDate) : null
+      await leadsService.update(id, { lastContactedAt: isoDate })
+      toast.success(isoDate ? 'Last contact date updated!' : 'Last contact reset to Never')
+      setModal(null)
+      fetchLead()
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update last contact')
+    } finally {
+      setSavingQuickMetric(false)
+    }
+  }
+
+  const openEditTotalCalls = () => {
+    setEditTotalCallsCount(lead?.totalCalls !== undefined ? lead.totalCalls : 0)
+    setModal('editTotalCalls')
+  }
+
+  const handleSaveTotalCalls = async (e) => {
+    e.preventDefault()
+    setSavingQuickMetric(true)
+    try {
+      const calls = Math.max(0, parseInt(editTotalCallsCount, 10) || 0)
+      await leadsService.update(id, { totalCalls: calls })
+      toast.success('Total calls updated!')
+      setModal(null)
+      fetchLead()
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update total calls')
+    } finally {
+      setSavingQuickMetric(false)
+    }
+  }
+
+  const handleClearFollowUp = async () => {
+    if (!window.confirm('Clear scheduled next follow-up?')) return
+    try {
+      await leadsService.update(id, { nextFollowUpAt: null })
+      toast.success('Scheduled follow-up cleared!')
+      fetchLead()
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to clear follow-up')
+    }
   }
 
   useSocketEvent('lead_updated', handleModalSuccess)
@@ -480,13 +537,34 @@ export const LeadDetailsPage = () => {
                   : 'border-kb-sand'
               }`}
             >
-              <div className="flex items-center gap-2 mb-1.5">
-                <Calendar
-                  className={`w-4 h-4 ${
-                    nextFollowUpOverdue ? 'text-kb-crimson' : nextFollowUpToday ? 'text-kb-amber-fg' : 'text-kb-umber'
-                  }`}
-                />
-                <h3 className="font-semibold text-sm text-kb-cocoa">Next Follow-up</h3>
+              <div className="flex items-center justify-between gap-2 mb-1.5">
+                <div className="flex items-center gap-2">
+                  <Calendar
+                    className={`w-4 h-4 ${
+                      nextFollowUpOverdue ? 'text-kb-crimson' : nextFollowUpToday ? 'text-kb-amber-fg' : 'text-kb-umber'
+                    }`}
+                  />
+                  <h3 className="font-semibold text-sm text-kb-cocoa">Next Follow-up</h3>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setModal('followup')}
+                    className="text-kb-strawberry hover:underline font-semibold"
+                    title="Reschedule follow-up"
+                  >
+                    ✏️ Edit
+                  </button>
+                  <span className="text-kb-sand">|</span>
+                  <button
+                    type="button"
+                    onClick={handleClearFollowUp}
+                    className="text-kb-muted hover:text-kb-crimson font-medium"
+                    title="Clear follow-up"
+                  >
+                    Clear
+                  </button>
+                </div>
               </div>
               <p
                 className={`text-base font-bold ${
@@ -507,14 +585,25 @@ export const LeadDetailsPage = () => {
                 <div className="bg-kb-cream-deep rounded-xl p-2.5 border border-kb-sand flex flex-col justify-between">
                   <div className="flex items-center justify-between">
                     <p className="text-kb-muted text-xs">📞 Total Calls</p>
-                    <button
-                      type="button"
-                      onClick={() => setModal('call')}
-                      className="text-[10px] text-kb-strawberry hover:underline font-semibold"
-                      title="Log a new call"
-                    >
-                      + Log Call
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={openEditTotalCalls}
+                        className="text-[10px] text-kb-muted hover:text-kb-cocoa hover:underline font-semibold"
+                        title="Edit call count directly"
+                      >
+                        ✏️ Edit
+                      </button>
+                      <span className="text-kb-sand">·</span>
+                      <button
+                        type="button"
+                        onClick={() => setModal('call')}
+                        className="text-[10px] text-kb-strawberry hover:underline font-semibold"
+                        title="Log a new call"
+                      >
+                        + Log Call
+                      </button>
+                    </div>
                   </div>
                   <p className="text-sm font-bold text-kb-cocoa mt-0.5">
                     {lead.totalCalls || 0}
@@ -523,11 +612,26 @@ export const LeadDetailsPage = () => {
                     </span>
                   </p>
                 </div>
-                <div className="bg-kb-cream-deep rounded-xl p-2.5 border border-kb-sand">
-                  <p className="text-kb-muted text-xs">🕒 Last Contact</p>
+                <div className="bg-kb-cream-deep rounded-xl p-2.5 border border-kb-sand flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <p className="text-kb-muted text-xs">🕒 Last Contact</p>
+                    <button
+                      type="button"
+                      onClick={openEditLastContact}
+                      className="text-[10px] text-kb-strawberry hover:underline font-semibold"
+                      title="Edit last contact date"
+                    >
+                      ✏️ Edit
+                    </button>
+                  </div>
                   <p className="text-sm font-semibold text-kb-cocoa mt-0.5">
                     {lead.lastContactedAt ? formatRelative(lead.lastContactedAt) : 'Never'}
                   </p>
+                  {lead.lastContactedAt && (
+                    <p className="text-[10px] text-kb-muted mt-0.5 truncate" title={formatDateTime(lead.lastContactedAt)}>
+                      {formatDate(lead.lastContactedAt)}
+                    </p>
+                  )}
                 </div>
               </>
             )}
@@ -919,6 +1023,90 @@ export const LeadDetailsPage = () => {
         message={`Are you sure you want to delete "${lead.name}"? This action cannot be undone.`}
         confirmText="Delete Lead"
       />
+
+      {/* Edit Last Contact Date Modal */}
+      <Modal
+        isOpen={modal === 'editLastContact'}
+        onClose={() => setModal(null)}
+        title="🕒 Edit Last Contact Date & Time"
+        size="sm"
+      >
+        <form onSubmit={handleSaveLastContact} className="space-y-4">
+          <div>
+            <label className="label">Last Contact Date & Time</label>
+            <input
+              type="datetime-local"
+              className="input w-full"
+              value={editLastContactDate}
+              onChange={e => setEditLastContactDate(e.target.value)}
+            />
+            <p className="text-[11px] text-kb-muted mt-1">
+              Select when you last communicated with this lead.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => setEditLastContactDate(toLocalDatetimeInput(new Date()))}
+              className="btn-secondary text-xs py-1 px-2.5 flex-1"
+            >
+              Set to Now
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditLastContactDate('')}
+              className="btn-ghost text-xs py-1 px-2.5 text-kb-crimson hover:bg-kb-lost-bg flex-1"
+            >
+              Clear (Never)
+            </button>
+          </div>
+
+          <div className="flex gap-2 pt-3 border-t border-kb-sand">
+            <button type="button" onClick={() => setModal(null)} className="btn-secondary flex-1 text-sm">
+              Cancel
+            </button>
+            <button type="submit" disabled={savingQuickMetric} className="btn-primary flex-1 text-sm">
+              {savingQuickMetric ? 'Saving...' : '💾 Save Date'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Edit Total Calls Count Modal */}
+      <Modal
+        isOpen={modal === 'editTotalCalls'}
+        onClose={() => setModal(null)}
+        title="📞 Edit Total Calls Count"
+        size="sm"
+      >
+        <form onSubmit={handleSaveTotalCalls} className="space-y-4">
+          <div>
+            <label className="label">Total Calls Made / Logged</label>
+            <input
+              type="number"
+              min="0"
+              className="input w-full"
+              value={editTotalCallsCount}
+              onChange={e => setEditTotalCallsCount(e.target.value)}
+              placeholder="0"
+              required
+            />
+            <p className="text-[11px] text-kb-muted mt-1">
+              Independent counter for calls. Updating this will not touch follow-up or contact history.
+            </p>
+          </div>
+
+          <div className="flex gap-2 pt-3 border-t border-kb-sand">
+            <button type="button" onClick={() => setModal(null)} className="btn-secondary flex-1 text-sm">
+              Cancel
+            </button>
+            <button type="submit" disabled={savingQuickMetric} className="btn-primary flex-1 text-sm">
+              {savingQuickMetric ? 'Saving...' : '💾 Save Count'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   )
 }

@@ -304,6 +304,12 @@ const createLead = async (data, user) => {
   if (data.totalCalls !== undefined) {
     leadPayload.totalCalls = Math.max(0, Number(data.totalCalls) || 0);
   }
+  if (data.lastContactedAt !== undefined) {
+    leadPayload.lastContactedAt = data.lastContactedAt ? new Date(data.lastContactedAt) : null;
+  }
+  if (data.nextFollowUpAt !== undefined) {
+    leadPayload.nextFollowUpAt = data.nextFollowUpAt ? new Date(data.nextFollowUpAt) : null;
+  }
   if (userRole === 'ADMIN') {
     if (leadPayload.assignedTo) {
       leadPayload.primaryAssignedTo = leadPayload.primaryAssignedTo || leadPayload.assignedTo;
@@ -391,9 +397,21 @@ const updateLead = async (id, data, userId, userRole) => {
   // Preserve original primaryAssignedTo unless never set
   const incomingAssignedTo = data.assignedTo;
   delete data.primaryAssignedTo;
+
+  // Handle totalCalls, lastContactedAt, and nextFollowUpAt completely independently
   if (data.totalCalls !== undefined) {
-    data.totalCalls = Math.max(0, Number(data.totalCalls) || 0);
+    lead.totalCalls = Math.max(0, Number(data.totalCalls) || 0);
+    delete data.totalCalls;
   }
+  if (data.lastContactedAt !== undefined) {
+    lead.lastContactedAt = data.lastContactedAt ? new Date(data.lastContactedAt) : null;
+    delete data.lastContactedAt;
+  }
+  if (data.nextFollowUpAt !== undefined) {
+    lead.nextFollowUpAt = data.nextFollowUpAt ? new Date(data.nextFollowUpAt) : null;
+    delete data.nextFollowUpAt;
+  }
+
   Object.assign(lead, data);
 
   if (data.status && data.status !== oldStatus) {

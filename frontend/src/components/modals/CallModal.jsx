@@ -3,6 +3,7 @@ import { Phone } from 'lucide-react'
 import { Modal } from '../ui/Modal'
 import { leadsService } from '../../services/leads.service'
 import { CALL_OUTCOMES, FOLLOWUP_TYPES } from '../../utils/constants'
+import { toUtcIsoString } from '../../utils/helpers'
 import toast from 'react-hot-toast'
 
 const OUTCOME_ICONS = {
@@ -56,7 +57,7 @@ export const CallModal = ({ isOpen, onClose, lead, onSuccess }) => {
         outcome,
         duration,
         notes,
-        nextFollowUpAt: nextFollowUpAt || null,
+        nextFollowUpAt: nextFollowUpAt ? toUtcIsoString(nextFollowUpAt) : null,
         nextFollowUpType,
       })
       toast.success('Call logged successfully')
