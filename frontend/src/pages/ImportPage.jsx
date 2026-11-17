@@ -84,9 +84,9 @@ export const ImportPage = () => {
     }
   }
 
-  const csvTemplate = `Company Name,Company Email,Business Category,Sub Category,Website,Address,City,State,Country,Pincode,Business Description,POC Name,POC Job Title,POC Phone,POC Alt Phone,POC Email,POC LinkedIn,POC Talk Notes,Type of Reach,Reach Notes,Status,Priority,Interested In,Estimated Budget,General Notes
-Sharma Enterprises,info@sharmacafe.example.com,Restaurant,Cafe & Bakery,https://sharmacafe.example.com,12/A Park Street,Kolkata,West Bengal,India,700016,Family cafe planning online ordering portal,Rajesh Sharma,Managing Director,9876543210,9876543211,rajesh@sharmacafe.example.com,,Spoke briefly; excited to digitize menu,Cold Call,Direct outreach,NEW,HIGH,Mobile App Development,₹1,50,000 - ₹2,50,000,Follow up Tuesday morning
-Gupta Dental Care,contact@guptadental.example.com,Healthcare,Dental Clinic,https://guptadental.example.com,45 MG Road,Mumbai,Maharashtra,India,400001,Expanding dental practice,Dr. Priya Gupta,Owner,9123456780,,drpriya@guptadental.example.com,,Needs appointment scheduling site,Instagram,Ad campaign reply,NEW,MEDIUM,Website Development,₹75,000 - ₹1,00,000,Prefers weekend updates`
+  const csvTemplate = `Company Name,Company Email,Company Phone,Business Category,Sub Category,Website,Address,City,State,Country,Pincode,Business Description,POC Name,POC Job Title,POC Phone,POC Alt Phone,POC Email,POC LinkedIn,POC Talk Notes,Type of Reach,Reach Notes,Status,Priority,Interested In,Estimated Budget,Total Calls,Next Follow-up,General Notes
+Sharma Enterprises,info@sharmacafe.example.com,+91 33 2222 3333,Restaurant,Cafe & Bakery,https://sharmacafe.example.com,12/A Park Street,Kolkata,West Bengal,India,700016,Family cafe planning online ordering portal,Rajesh Sharma,Managing Director,9876543210,9876543211,rajesh@sharmacafe.example.com,,Spoke briefly; excited to digitize menu,Cold Call,Direct outreach,NEW,HIGH,Mobile App Development,₹1,50,000 - ₹2,50,000,1,2026-11-25 15:00,Follow up Tuesday morning
+Gupta Dental Care,contact@guptadental.example.com,+91 22 4444 5555,Healthcare,Dental Clinic,https://guptadental.example.com,45 MG Road,Mumbai,Maharashtra,India,400001,Expanding dental practice,Dr. Priya Gupta,Owner,9123456780,,drpriya@guptadental.example.com,,Needs appointment scheduling site,Instagram,Ad campaign reply,NEW,MEDIUM,Website Development,₹75,000 - ₹1,00,000,0,,Prefers weekend updates`
 
   const downloadCsvTemplate = () => {
     const blob = new Blob([csvTemplate], { type: 'text/csv;charset=utf-8;' })
@@ -222,13 +222,13 @@ Gupta Dental Care,contact@guptadental.example.com,Healthcare,Dental Clinic,https
           <div className="space-y-1.5 text-xs">
             <p className="text-kb-cocoa font-medium flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-kb-strawberry inline-block" />
-              Essential fields: <span className="font-mono text-kb-strawberry">POC Phone</span> (or Alt Phone) and <span className="font-mono text-kb-strawberry">POC Name</span> (or Company Name)
+              Essential fields: <span className="font-mono text-kb-strawberry">POC Phone</span> (or Alt Phone) and <span className="font-mono text-kb-strawberry">Company Name</span> (or POC Name)
             </p>
             <p className="text-kb-muted leading-relaxed">
-              If POC Name is blank, the system automatically uses Company Name or Designation (Reception / Manager).
+              If POC Name is not provided, it remains blank in the POC section (the system will not overwrite it with Company Name).
             </p>
             <p className="text-kb-muted leading-relaxed">
-              <span className="font-semibold text-kb-cocoa">Optional fields:</span> Company Name, Business Category, Sub Category, Website, Address, City, State, Country, Pincode, Business Description, POC Job Title, POC Alt Phone, POC Email, POC LinkedIn, POC Talk Notes, Type of Reach, Reach Notes, Status, Priority, Interested In, Estimated Budget, General Notes
+              <span className="font-semibold text-kb-cocoa">Optional fields:</span> Company Name, Company Email, Company Phone, Business Category, Sub Category, Website, Address, City, State, Country, Pincode, Business Description, POC Job Title, POC Alt Phone, POC Email, POC LinkedIn, POC Talk Notes, Type of Reach, Reach Notes, Status, Priority, Interested In, Estimated Budget, Total Calls, Next Follow-up, General Notes
             </p>
           </div>
         </div>

@@ -342,6 +342,8 @@ const getImportTemplate = async (req, res, next) => {
         'Priority': 'HIGH',
         'Interested In': 'Mobile App Development',
         'Estimated Budget': '₹1,50,000 - ₹2,50,000',
+        'Total Calls': 1,
+        'Next Follow-up': '2026-11-25 15:00',
         'General Notes': 'Follow up next Tuesday morning after menu review',
       },
       {

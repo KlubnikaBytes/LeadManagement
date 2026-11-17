@@ -209,6 +209,14 @@ const processImport = async (records, user, selectedAssigneeId) => {
     const status = normalizeStatus(getVal(row, 'Status', 'status'));
     const priority = normalizePriority(getVal(row, 'Priority', 'priority'));
     const notes = getVal(row, 'General Notes', 'generalNotes', 'Notes', 'notes', 'Comments', 'comments');
+    const rawTotalCalls = getVal(row, 'Total Calls', 'totalCalls', 'Calls', 'calls');
+    const totalCalls = rawTotalCalls !== '' ? Math.max(0, parseInt(rawTotalCalls, 10) || 0) : 0;
+    const rawFollowUp = getVal(row, 'Next Follow-up', 'nextFollowUp', 'nextFollowUpAt', 'Follow-up Date', 'followUpDate', 'Follow Up', 'followUp');
+    let nextFollowUpAt = null;
+    if (rawFollowUp) {
+      const parsed = new Date(rawFollowUp);
+      if (!isNaN(parsed.getTime())) nextFollowUpAt = parsed;
+    }
 
     results.valid++;
     validRecords.push({
@@ -239,6 +247,8 @@ const processImport = async (records, user, selectedAssigneeId) => {
       priority,
       interestedIn,
       estimatedBudget,
+      totalCalls,
+      ...(nextFollowUpAt ? { nextFollowUpAt } : {}),
       notes,
       assignedTo: effectiveAssignedTo || null,
       primaryAssignedTo: effectiveAssignedTo || null,
