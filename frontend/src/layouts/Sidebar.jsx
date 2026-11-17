@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import {
   LayoutDashboard, Users, Phone, Calendar, BarChart3, Upload,
   FileText, Settings, LogOut, ChevronDown, ChevronRight,
-  UserCheck, AlertCircle, Star, XCircle, TrendingUp, X,
+  UserCheck, AlertCircle, Star, XCircle, TrendingUp, X, Trash2,
 } from 'lucide-react'
 import { useState } from 'react'
 import { Avatar } from '../components/ui/Avatar'
@@ -122,6 +122,7 @@ export const Sidebar = ({ onClose }) => {
             <div className="pt-3 pb-1">
               <p className="text-xs font-semibold text-kb-taupe uppercase tracking-wider px-3 mb-1">Admin</p>
             </div>
+            <NavItem to="/deleted-leads" icon={Trash2} label="Deleted Leads" onClick={onClose} />
             <NavItem to="/settings" icon={Settings} label="Settings" onClick={onClose} />
           </>
         )}

@@ -16,6 +16,7 @@ import { TeamPage } from './pages/TeamPage'
 import { ImportPage } from './pages/ImportPage'
 import { ReportsPage } from './pages/ReportsPage'
 import { SettingsPage } from './pages/SettingsPage'
+import { DeletedLeadsPage } from './pages/DeletedLeadsPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 
 const ProtectedRoute = ({ children, roles }) => {
@@ -58,6 +59,9 @@ const AppRoutes = () => {
         } />
         <Route path="/settings" element={
           <ProtectedRoute roles={['ADMIN']}><SettingsPage /></ProtectedRoute>
+        } />
+        <Route path="/deleted-leads" element={
+          <ProtectedRoute roles={['ADMIN']}><DeletedLeadsPage /></ProtectedRoute>
         } />
       </Route>
 

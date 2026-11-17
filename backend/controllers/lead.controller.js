@@ -125,9 +125,38 @@ const updateLead = async (req, res, next) => {
 
 const deleteLead = async (req, res, next) => {
   try {
-    await leadService.deleteLead(req.params.id, req.user._id);
+    await leadService.deleteLead(req.params.id, req.user);
     req.app.get('io')?.emit('lead_updated');
-    res.json({ success: true, message: 'Lead deleted successfully' });
+    res.json({ success: true, message: 'Lead moved to trash successfully' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const restoreLead = async (req, res, next) => {
+  try {
+    const lead = await leadService.restoreLead(req.params.id, req.user);
+    req.app.get('io')?.emit('lead_updated');
+    res.json({ success: true, message: 'Lead restored successfully', data: lead });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const permanentDeleteLead = async (req, res, next) => {
+  try {
+    await leadService.permanentDeleteLead(req.params.id, req.user);
+    req.app.get('io')?.emit('lead_updated');
+    res.json({ success: true, message: 'Lead permanently purged' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getDeletedLeads = async (req, res, next) => {
+  try {
+    const result = await leadService.getDeletedLeads(req.query, req.user);
+    res.json({ success: true, ...result });
   } catch (err) {
     next(err);
   }
@@ -405,4 +434,22 @@ const searchCompanies = async (req, res, next) => {
   }
 };
 
-module.exports = { getLeads, getOptions, addOption, getLead, createLead, updateLead, deleteLead, changeStatus, assignLead, checkDuplicate, importLeads, exportLeads, getImportTemplate, searchCompanies };
+module.exports = {
+  getLeads,
+  getDeletedLeads,
+  getOptions,
+  addOption,
+  getLead,
+  createLead,
+  updateLead,
+  deleteLead,
+  restoreLead,
+  permanentDeleteLead,
+  changeStatus,
+  assignLead,
+  checkDuplicate,
+  importLeads,
+  exportLeads,
+  getImportTemplate,
+  searchCompanies,
+};

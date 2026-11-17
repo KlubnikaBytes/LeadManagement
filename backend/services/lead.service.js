@@ -550,22 +550,169 @@ const assignLead = async (id, assignedTo, userId, note = '', assignedByName = ''
   return lead;
 };
 
-const deleteLead = async (id, userId) => {
+const deleteLead = async (id, user) => {
+  const userId = user?._id || user;
+  const userRole = user?.role;
   const lead = await Lead.findOne({ _id: id, isDeleted: false });
   if (!lead) throw Object.assign(new Error('Lead not found'), { statusCode: 404 });
 
+  const isAdminOrLeader = userRole === 'ADMIN' || userRole === 'TEAM_LEADER';
+  const isCreator = lead.createdBy?.toString() === userId.toString();
+  const isAssignee = lead.assignedTo?.toString() === userId.toString();
+
+  if (!isAdminOrLeader && !isCreator && !isAssignee) {
+    throw Object.assign(
+      new Error('You are only authorized to delete leads that you created or that are assigned to you'),
+      { statusCode: 403 }
+    );
+  }
+
   lead.isDeleted = true;
+  lead.deletedAt = new Date();
+  lead.deletedBy = userId;
   await lead.save();
 
   await createActivity({
     lead: lead._id,
     user: userId,
     type: 'LEAD_DELETED',
-    description: `Lead deleted: ${lead.name}`,
-    metadata: {},
+    description: `Lead moved to trash: ${lead.name || lead.companyName || 'Lead'}`,
+    metadata: { deletedBy: userId, deletedAt: lead.deletedAt },
   });
 
   return lead;
+};
+
+const restoreLead = async (id, user) => {
+  const userId = user?._id || user;
+  const userRole = user?.role;
+  const lead = await Lead.findOne({ _id: id, isDeleted: true });
+  if (!lead) throw Object.assign(new Error('Deleted lead not found'), { statusCode: 404 });
+
+  if (userRole !== 'ADMIN' && userRole !== 'TEAM_LEADER') {
+    throw Object.assign(new Error('Only Admins or Team Leaders can restore deleted leads'), { statusCode: 403 });
+  }
+
+  lead.isDeleted = false;
+  lead.restoredAt = new Date();
+  lead.restoredBy = userId;
+  await lead.save();
+
+  await createActivity({
+    lead: lead._id,
+    user: userId,
+    type: 'LEAD_RESTORED',
+    description: `Lead restored from trash: ${lead.name || lead.companyName || 'Lead'}`,
+    metadata: { restoredBy: userId, restoredAt: lead.restoredAt },
+  });
+
+  return lead;
+};
+
+const permanentDeleteLead = async (id, user) => {
+  if (user?.role !== 'ADMIN') {
+    throw Object.assign(new Error('Only Admins can permanently purge deleted leads'), { statusCode: 403 });
+  }
+  const lead = await Lead.findOneAndDelete({ _id: id, isDeleted: true });
+  if (!lead) throw Object.assign(new Error('Deleted lead not found'), { statusCode: 404 });
+  return lead;
+};
+
+const getDeletedLeads = async (query, user) => {
+  if (user?.role !== 'ADMIN') {
+    throw Object.assign(new Error('Only Admins can view deleted leads archive'), { statusCode: 403 });
+  }
+
+  const {
+    page = 1, limit = 20, search, status, businessCategory, businessSubCategory,
+    deletedBy, createdBy, assignedTo, sortBy = 'deletedAt', sortOrder = 'desc',
+    dateField = 'deletedAt', dateRange, startDate, endDate,
+  } = query;
+
+  const { page: pageNum, limit: limitNum, skip } = paginate(page, limit, 100);
+  const filter = { isDeleted: true };
+  const andConditions = [];
+
+  if (search) {
+    const s = search.trim();
+    andConditions.push({
+      $or: [
+        { name: { $regex: s, $options: 'i' } },
+        { companyName: { $regex: s, $options: 'i' } },
+        { phone: { $regex: s, $options: 'i' } },
+        { alternatePhone: { $regex: s, $options: 'i' } },
+        { companyPhone: { $regex: s, $options: 'i' } },
+        { email: { $regex: s, $options: 'i' } },
+        { companyEmail: { $regex: s, $options: 'i' } },
+        { website: { $regex: s, $options: 'i' } },
+      ],
+    });
+  }
+
+  if (status) filter.status = status;
+  if (businessCategory) andConditions.push({ $or: [{ businessCategory }, { businessType: businessCategory }] });
+  if (businessSubCategory) filter.businessSubCategory = businessSubCategory;
+  if (deletedBy) filter.deletedBy = deletedBy;
+  if (createdBy) filter.createdBy = createdBy;
+  if (assignedTo) filter.assignedTo = assignedTo;
+
+  // Date range filtering
+  if (dateRange || (startDate && endDate)) {
+    const now = new Date();
+    let start, end;
+    if (dateRange === 'today') {
+      start = new Date(now.setHours(0, 0, 0, 0));
+      end = new Date(now.setHours(23, 59, 59, 999));
+    } else if (dateRange === 'this_week') {
+      const day = now.getDay();
+      const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+      start = new Date(now.setDate(diff));
+      start.setHours(0, 0, 0, 0);
+      end = new Date();
+      end.setHours(23, 59, 59, 999);
+    } else if (dateRange === 'this_month') {
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    } else if (startDate && endDate) {
+      start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+    }
+    if (start && end) {
+      filter[dateField || 'deletedAt'] = { $gte: start, $lte: end };
+    }
+  }
+
+  if (andConditions.length > 0) {
+    filter.$and = andConditions;
+  }
+
+  const sort = { [sortBy || 'deletedAt']: sortOrder === 'asc' ? 1 : -1 };
+
+  const [total, leads] = await Promise.all([
+    Lead.countDocuments(filter),
+    Lead.find(filter)
+      .populate('assignedTo', 'name email avatar role')
+      .populate('primaryAssignedTo', 'name email avatar role')
+      .populate('createdBy', 'name email avatar role')
+      .populate('deletedBy', 'name email avatar role')
+      .sort(sort)
+      .skip(skip)
+      .limit(limitNum)
+      .lean(),
+  ]);
+
+  return {
+    data: leads,
+    pagination: {
+      total,
+      page: pageNum,
+      pages: Math.ceil(total / limitNum) || 1,
+      totalPages: Math.ceil(total / limitNum) || 1,
+      limit: limitNum,
+    },
+  };
 };
 
 const checkDuplicate = async (phone, email, website, companyEmail) => {
@@ -631,12 +778,15 @@ const searchCompanies = async (query) => {
 
 module.exports = {
   getLeads,
+  getDeletedLeads,
   getLeadById,
   createLead,
   updateLead,
   changeLeadStatus,
   assignLead,
   deleteLead,
+  restoreLead,
+  permanentDeleteLead,
   checkDuplicate,
   searchCompanies,
   canAccessSalesSection,

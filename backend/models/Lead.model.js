@@ -78,7 +78,11 @@ const leadSchema = new mongoose.Schema(
     conversionNotes: { type: String },
     finalService: { type: String },
     finalBudget: { type: String },
-    isDeleted: { type: Boolean, default: false },
+    isDeleted: { type: Boolean, default: false, index: true },
+    deletedAt: { type: Date, index: true },
+    deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    restoredAt: { type: Date },
+    restoredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   { timestamps: true }
 );

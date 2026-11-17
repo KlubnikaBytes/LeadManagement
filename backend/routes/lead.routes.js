@@ -5,8 +5,9 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 
 
 const { protect, authorize } = require('../middleware/auth.middleware');
 const {
-  getLeads, getOptions, addOption, getLead, createLead, updateLead, deleteLead,
-  changeStatus, assignLead, checkDuplicate, importLeads, exportLeads, getImportTemplate, searchCompanies,
+  getLeads, getDeletedLeads, getOptions, addOption, getLead, createLead, updateLead, deleteLead,
+  restoreLead, permanentDeleteLead, changeStatus, assignLead, checkDuplicate, importLeads,
+  exportLeads, getImportTemplate, searchCompanies,
 } = require('../controllers/lead.controller');
 const { logCall, getCallsByLead } = require('../controllers/call.controller');
 const { createFollowUp } = require('../controllers/followup.controller');
@@ -23,6 +24,10 @@ router.get('/export', exportLeads);
 router.get('/import-template', getImportTemplate);
 router.post('/import', upload.single('file'), importLeads);
 
+router.get('/deleted', authorize('ADMIN'), getDeletedLeads);
+router.patch('/:id/restore', authorize('ADMIN'), restoreLead);
+router.delete('/:id/permanent', authorize('ADMIN'), permanentDeleteLead);
+
 router.route('/')
   .get(getLeads)
   .post(createLead);
@@ -30,7 +35,7 @@ router.route('/')
 router.route('/:id')
   .get(getLead)
   .put(updateLead)
-  .delete(authorize('ADMIN'), deleteLead);
+  .delete(deleteLead);
 
 router.patch('/:id/status', changeStatus);
 router.patch('/:id/assign', authorize('ADMIN'), assignLead);

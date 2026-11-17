@@ -4,8 +4,10 @@ import { Phone, Eye, Edit, Trash2, Lock, ChevronDown, ChevronRight, Users, User 
 import { StatusBadge, PriorityBadge } from '../ui/StatusBadge'
 import { Avatar } from '../ui/Avatar'
 import { formatDate, formatRelative, isFollowUpOverdue, isFollowUpToday } from '../../utils/helpers'
+import { useAuth } from '../../context/AuthContext'
 
 export const LeadTable = ({ leads, onCall, onDelete, canDelete, loading }) => {
+  const { canDeleteLead } = useAuth()
   const [expandedCompanies, setExpandedCompanies] = useState(new Set())
 
   const toggleExpand = (companyKey) => {
@@ -206,7 +208,7 @@ export const LeadTable = ({ leads, onCall, onDelete, canDelete, loading }) => {
                     </Link>
                   </>
                 )}
-                {canDelete && (
+                {(canDeleteLead ? canDeleteLead(lead) : canDelete) && (
                   <button onClick={() => onDelete && onDelete(lead)} className="btn-ghost text-xs py-1.5 px-2 text-kb-crimson hover:bg-kb-lost-bg" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -389,7 +391,7 @@ export const LeadTable = ({ leads, onCall, onDelete, canDelete, loading }) => {
                             </Link>
                           </>
                         )}
-                        {canDelete && (
+                        {(canDeleteLead ? canDeleteLead(lead) : canDelete) && (
                           <button onClick={() => onDelete && onDelete(lead)} className="btn-icon p-1.5 text-kb-crimson hover:bg-kb-lost-bg" title="Delete">
                             <Trash2 className="w-4 h-4" />
                           </button>

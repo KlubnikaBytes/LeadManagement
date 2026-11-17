@@ -75,8 +75,22 @@ export const AuthProvider = ({ children }) => {
   const canDelete = isAdmin
   const canAssign = isAdmin
 
+  const canDeleteLead = useCallback((lead) => {
+    if (!user) return false
+    if (isAdmin || isTeamLeader) return true
+    const currentUserId = user._id?.toString() || user.id?.toString()
+    const createdById = (lead?.createdBy?._id || lead?.createdBy)?.toString()
+    const assignedToId = (lead?.assignedTo?._id || lead?.assignedTo)?.toString()
+    const primaryAssignedToId = (lead?.primaryAssignedTo?._id || lead?.primaryAssignedTo)?.toString()
+    return (
+      (createdById && createdById === currentUserId) ||
+      (assignedToId && assignedToId === currentUserId) ||
+      (primaryAssignedToId && primaryAssignedToId === currentUserId)
+    )
+  }, [user, isAdmin, isTeamLeader])
+
   return (
-    <AuthContext.Provider value={{ user, loading, initializing, login, signup, logout, updateCurrentUser, isAdmin, isTeamLeader, isSalesExec, canManageUsers, canImport, canDelete, canAssign }}>
+    <AuthContext.Provider value={{ user, loading, initializing, login, signup, logout, updateCurrentUser, isAdmin, isTeamLeader, isSalesExec, canManageUsers, canImport, canDelete, canAssign, canDeleteLead }}>
       {children}
     </AuthContext.Provider>
   )

@@ -58,7 +58,7 @@ const DetailItem = ({ icon: Icon, label, value, isLink, linkHref }) => {
 export const LeadDetailsPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { canDelete, canAssign } = useAuth()
+  const { canDelete, canAssign, canDeleteLead } = useAuth()
   const [lead, setLead] = useState(null)
   const [activities, setActivities] = useState([])
   const [notes, setNotes] = useState([])
@@ -162,7 +162,7 @@ export const LeadDetailsPage = () => {
               Edit Lead
             </Link>
           )}
-          {canDelete && (
+          {(canDelete || canDeleteLead?.(lead)) && (
             <button onClick={() => setModal('delete')} className="btn-danger text-sm">
               Delete
             </button>
