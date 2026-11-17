@@ -348,6 +348,8 @@ const getImportTemplate = async (req, res, next) => {
       },
       {
         'Company Name': 'Gupta Dental Care',
+        'Company Email': 'contact@guptadental.example.com',
+        'Company Phone': '+91 22 4444 5555',
         'Business Category': 'Healthcare',
         'Sub Category': 'Dental Clinic',
         'Website': 'https://guptadental.example.com',
@@ -370,6 +372,8 @@ const getImportTemplate = async (req, res, next) => {
         'Priority': 'MEDIUM',
         'Interested In': 'Website Development',
         'Estimated Budget': '₹75,000 - ₹1,00,000',
+        'Total Calls': 0,
+        'Next Follow-up': '',
         'General Notes': 'Prefers WhatsApp updates on weekends',
       },
     ];
