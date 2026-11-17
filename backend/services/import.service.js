@@ -96,7 +96,7 @@ const processImport = async (records, user, selectedAssigneeId) => {
     const rowNum = i + 2;
     const errors = [];
 
-    // 1. Mandatory Fields: At least POC Name or Company Name, plus Phone
+    // 1. Mandatory Fields: At least Company Name OR POC Name is required
     let name = getVal(row, 'POC Name', 'pocName', 'Name', 'name', 'Contact Person', 'contactPerson');
     const companyName = getVal(row, 'Company Name', 'companyName', 'Company', 'company', 'Business Name', 'businessName');
     const pocJobTitle = getVal(row, 'POC Job Title', 'pocJobTitle', 'Job Title', 'jobTitle', 'Designation', 'designation');
@@ -107,21 +107,21 @@ const processImport = async (records, user, selectedAssigneeId) => {
     }
 
     if (!name && !companyName) {
-      errors.push('POC Name or Company Name is required');
+      errors.push('At least Company Name or POC Name is required');
     }
 
-    // 2. Phone Extraction (handles primary, alt phone fallback, and multiple numbers like "9876543210 / 9876543211")
+    // 2. Phone Extraction (handles POC phone, alt phone, and company phone fallback)
     const rawPhoneField = getVal(
       row,
       'POC Phone',
       'pocPhone',
+      'Primary Phone',
       'Phone',
       'phone',
       'Mobile',
       'mobile',
       'Contact Number',
-      'contactNumber',
-      'Primary Phone'
+      'contactNumber'
     );
     const rawAltPhoneField = getVal(
       row,
@@ -134,17 +134,26 @@ const processImport = async (records, user, selectedAssigneeId) => {
       'WhatsApp',
       'whatsapp'
     );
+    const rawCompanyPhoneField = getVal(
+      row,
+      'Company Phone',
+      'companyPhone',
+      'Business Phone',
+      'businessPhone',
+      'Company Contact',
+      'companyContact',
+      'Office Phone',
+      'officePhone'
+    );
 
     const primaryPhones = extractPhones(rawPhoneField);
     const altPhones = extractPhones(rawAltPhoneField);
+    const compPhones = extractPhones(rawCompanyPhoneField);
 
     const phone = primaryPhones[0] || altPhones[0] || '';
     const alternatePhone =
       primaryPhones[1] || (primaryPhones.length > 0 ? altPhones[0] : altPhones[1]) || '';
-
-    if (!phone) {
-      errors.push('Valid Phone Number is required (at least 6 digits)');
-    }
+    const companyPhone = compPhones[0] || rawCompanyPhoneField || '';
 
     if (errors.length > 0) {
       results.invalid++;
@@ -154,13 +163,12 @@ const processImport = async (records, user, selectedAssigneeId) => {
 
     const email = cleanEmail(getVal(row, 'POC Email', 'pocEmail', 'Email', 'email'));
     const companyEmail = cleanEmail(getVal(row, 'Company Email', 'companyEmail', 'Business Email', 'businessEmail', 'Official Email', 'Org Email'));
-    const companyPhone = getVal(row, 'Company Phone', 'companyPhone', 'Business Phone', 'businessPhone', 'Company Contact', 'companyContact', 'Office Phone', 'officePhone');
     const website = cleanWebsite(getVal(row, 'Website', 'website', 'URL', 'url'));
 
-    // In-batch duplicate check
-    if (seenPhones.has(phone)) {
+    // In-batch duplicate check (only if phone or email is present)
+    if (phone && seenPhones.has(phone)) {
       results.duplicates++;
-      results.duplicateLeads.push({ row: rowNum, name, phone, existing: { name, phone, reason: 'Duplicate in file' } });
+      results.duplicateLeads.push({ row: rowNum, name, phone, existing: { name, phone, reason: 'Duplicate phone in file' } });
       continue;
     }
     if (email && seenEmails.has(email)) {
@@ -169,19 +177,22 @@ const processImport = async (records, user, selectedAssigneeId) => {
       continue;
     }
 
-    // Database duplicate check
-    const dupFilter = [{ phone, isDeleted: false }];
+    // Database duplicate check (only if phone or email is provided)
+    const dupFilter = [];
+    if (phone) dupFilter.push({ phone, isDeleted: false });
     if (email) dupFilter.push({ email, isDeleted: false });
-    const duplicate = await Lead.findOne({ $or: dupFilter }).select('name phone email');
 
-    if (duplicate) {
-      results.duplicates++;
-      results.duplicateLeads.push({ row: rowNum, name, phone, existing: duplicate });
-      continue;
+    if (dupFilter.length > 0) {
+      const duplicate = await Lead.findOne({ $or: dupFilter }).select('name phone email');
+      if (duplicate) {
+        results.duplicates++;
+        results.duplicateLeads.push({ row: rowNum, name, phone, existing: duplicate });
+        continue;
+      }
     }
 
     // Add to seen sets for this batch
-    seenPhones.add(phone);
+    if (phone) seenPhones.add(phone);
     if (email) seenEmails.add(email);
 
     // 2. Business Information

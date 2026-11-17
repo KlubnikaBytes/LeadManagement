@@ -7,8 +7,8 @@ const leadSchema = new mongoose.Schema(
     pocJobTitle: { type: String, trim: true },
     phone: {
       type: String,
-      required: [true, 'Phone is required'],
       trim: true,
+      default: '',
       index: true,
     },
     alternatePhone: { type: String, trim: true },

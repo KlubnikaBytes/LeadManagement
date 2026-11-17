@@ -461,10 +461,9 @@ export const LeadFormPage = () => {
   const validate = () => {
     const e = {}
     if (!form.companyName.trim() && !form.name.trim()) e.companyName = 'Company name or POC name is required'
-    if (!form.phone.trim()) e.phone = 'Phone number is required'
+    if (form.phone && !/^\+?[0-9]{7,15}$/.test(form.phone.replace(/[\s-]/g, ''))) e.phone = 'Invalid phone number'
     if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) e.email = 'Invalid email address'
     if (form.companyEmail && !/^\S+@\S+\.\S+$/.test(form.companyEmail)) e.companyEmail = 'Invalid company email address'
-    if (form.phone && !/^\+?[0-9]{7,15}$/.test(form.phone.replace(/[\s-]/g, ''))) e.phone = 'Invalid phone number'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -829,7 +828,7 @@ export const LeadFormPage = () => {
               />
             </FormGroup>
 
-            <FormGroup label="Primary Phone" required error={errors.phone}>
+            <FormGroup label="Primary Phone" error={errors.phone}>
               <input
                 type="tel"
                 className={`input ${errors.phone ? 'border-kb-crimson' : ''}`}

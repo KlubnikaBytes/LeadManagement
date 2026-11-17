@@ -222,13 +222,13 @@ Gupta Dental Care,contact@guptadental.example.com,+91 22 4444 5555,Healthcare,De
           <div className="space-y-1.5 text-xs">
             <p className="text-kb-cocoa font-medium flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-kb-strawberry inline-block" />
-              Essential fields: <span className="font-mono text-kb-strawberry">POC Phone</span> (or Alt Phone) and <span className="font-mono text-kb-strawberry">Company Name</span> (or POC Name)
+              Essential requirement: At least <span className="font-mono text-kb-strawberry">Company Name</span> OR <span className="font-mono text-kb-strawberry">POC Name</span> is required to import.
             </p>
             <p className="text-kb-muted leading-relaxed">
-              If POC Name is not provided, it remains blank in the POC section (the system will not overwrite it with Company Name).
+              All other details (Phone, Email, Address, Category, etc.) are optional. Any omitted section will cleanly display as blank (<span className="font-semibold text-kb-cocoa">—</span>).
             </p>
             <p className="text-kb-muted leading-relaxed">
-              <span className="font-semibold text-kb-cocoa">Optional fields:</span> Company Name, Company Email, Company Phone, Business Category, Sub Category, Website, Address, City, State, Country, Pincode, Business Description, POC Job Title, POC Alt Phone, POC Email, POC LinkedIn, POC Talk Notes, Type of Reach, Reach Notes, Status, Priority, Interested In, Estimated Budget, Total Calls, Next Follow-up, General Notes
+              <span className="font-semibold text-kb-cocoa">Optional fields:</span> Company Name, Company Email, Company Phone, Business Category, Sub Category, Website, Address, City, State, Country, Pincode, Business Description, POC Name, POC Job Title, POC Phone, POC Alt Phone, POC Email, POC LinkedIn, POC Talk Notes, Type of Reach, Reach Notes, Status, Priority, Interested In, Estimated Budget, Total Calls, Next Follow-up, General Notes
             </p>
           </div>
         </div>

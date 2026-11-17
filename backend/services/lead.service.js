@@ -294,13 +294,11 @@ const createLead = async (data, user) => {
   if (data.businessCategory && !data.businessType) data.businessType = data.businessCategory;
   if (data.businessType && !data.businessCategory) data.businessCategory = data.businessType;
 
-  // Check for duplicate phone
-  const existing = await Lead.findOne({
-    $or: [
-      { phone: data.phone, isDeleted: false },
-      ...(data.email ? [{ email: data.email, isDeleted: false }] : []),
-    ],
-  });
+  // Check for duplicate phone or email if provided
+  const dupConditions = [];
+  if (data.phone) dupConditions.push({ phone: data.phone, isDeleted: false });
+  if (data.email) dupConditions.push({ email: data.email, isDeleted: false });
+  const existing = dupConditions.length > 0 ? await Lead.findOne({ $or: dupConditions }) : null;
 
   const leadPayload = { ...data, createdBy: userId };
   if (data.totalCalls !== undefined) {
