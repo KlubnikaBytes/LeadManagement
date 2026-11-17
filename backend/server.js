@@ -65,12 +65,15 @@ app.use(helmet());
 // CORS
 app.use(cors(corsOptions));
 
-// Rate limiting for auth routes
-const authLimiter = rateLimit({
+// General API rate limiting (allows up to 1200 requests per 15 minutes per IP)
+const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20,
+  max: 1200,
+  standardHeaders: true,
+  legacyHeaders: false,
   message: { success: false, message: 'Too many requests, please try again later.' },
 });
+app.use('/api', apiLimiter);
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
@@ -91,7 +94,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes
-app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/leads', leadRoutes);
 app.use('/api/calls', callRoutes);
 app.use('/api/followups', followUpRoutes);
