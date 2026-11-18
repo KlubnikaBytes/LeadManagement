@@ -281,26 +281,58 @@ export const LeadFormPage = () => {
     return Array.from(new Set([...staticSubs, ...dynamicSubs]))
   }, [form.businessCategory, dynamicOptions.subCategoriesByCategory])
 
-  const handleSelectCompany = (comp) => {
+  const handleSelectCompany = async (comp) => {
+    if (!comp) return
     setSelectedCompanyMeta(comp)
     setShowCompanySuggestions(false)
+
+    // 1. Immediately apply known company details
     setForm(prev => ({
       ...prev,
-      companyName: comp.companyName,
-      companyEmail: comp.companyEmail || prev.companyEmail,
-      companyPhone: comp.companyPhone || prev.companyPhone,
-      website: comp.website || prev.website,
-      businessCategory: comp.businessCategory || prev.businessCategory,
-      businessSubCategory: comp.businessSubCategory || prev.businessSubCategory,
-      address: comp.address || prev.address,
+      companyName: comp.companyName || prev.companyName,
+      companyEmail: comp.companyEmail || prev.companyEmail || '',
+      companyPhone: comp.companyPhone || prev.companyPhone || '',
+      website: comp.website || prev.website || '',
+      businessCategory: comp.businessCategory || comp.businessType || prev.businessCategory || '',
+      businessSubCategory: comp.businessSubCategory || prev.businessSubCategory || '',
+      address: comp.address || prev.address || '',
       country: comp.country || prev.country || 'India',
-      state: comp.state || prev.state,
-      city: comp.city || prev.city,
-      pincode: comp.pincode || prev.pincode,
-      businessDescription: comp.businessDescription || prev.businessDescription,
+      state: comp.state || prev.state || '',
+      city: comp.city || prev.city || '',
+      pincode: comp.pincode || prev.pincode || '',
+      businessDescription: comp.businessDescription || prev.businessDescription || '',
     }))
     if (errors.companyName) setErrors(prev => ({ ...prev, companyName: '' }))
-    toast.success(`Autofilled credentials for ${comp.companyName}`)
+
+    // 2. Fetch full document for the business to guarantee 100% of fields are populated
+    const targetLeadId = comp.pocs?.[0]?.leadId || comp.leadId
+    if (targetLeadId) {
+      try {
+        const fullRes = await leadsService.getById(targetLeadId)
+        const fullLead = fullRes.data?.data
+        if (fullLead) {
+          setForm(prev => ({
+            ...prev,
+            companyName: fullLead.companyName || comp.companyName || prev.companyName,
+            companyEmail: fullLead.companyEmail || comp.companyEmail || prev.companyEmail || '',
+            companyPhone: fullLead.companyPhone || comp.companyPhone || prev.companyPhone || '',
+            website: fullLead.website || comp.website || prev.website || '',
+            businessCategory: fullLead.businessCategory || fullLead.businessType || comp.businessCategory || prev.businessCategory || '',
+            businessSubCategory: fullLead.businessSubCategory || comp.businessSubCategory || prev.businessSubCategory || '',
+            address: fullLead.address || comp.address || prev.address || '',
+            country: fullLead.country || comp.country || prev.country || 'India',
+            state: fullLead.state || comp.state || prev.state || '',
+            city: fullLead.city || comp.city || prev.city || '',
+            pincode: fullLead.pincode || comp.pincode || prev.pincode || '',
+            businessDescription: fullLead.businessDescription || comp.businessDescription || prev.businessDescription || '',
+          }))
+        }
+      } catch (err) {
+        // Silently keep initial autofill
+      }
+    }
+
+    toast.success(`Autofilled business details for ${comp.companyName}`)
   }
 
   const PRIMARY_REACH_METHODS = ['Cold Call', 'WhatsApp', 'Cold Email']
@@ -589,6 +621,14 @@ export const LeadFormPage = () => {
                   value={form.companyName}
                   onFocus={() => {
                     if (companySuggestions.length > 0) setShowCompanySuggestions(true)
+                  }}
+                  onBlur={() => {
+                    if (form.companyName?.trim() && !selectedCompanyMeta) {
+                      const match = companySuggestions.find(
+                        c => c.companyName?.toLowerCase() === form.companyName.trim().toLowerCase()
+                      )
+                      if (match) handleSelectCompany(match)
+                    }
                   }}
                   onChange={e => {
                     handleChange('companyName', e.target.value)

@@ -135,7 +135,8 @@ export const LeadsPage = () => {
   const handleDelete = async (lead) => {
     try {
       await leadsService.delete(lead._id)
-      toast.success('Lead deleted')
+      const isPoc = lead?.companyName && lead?.name && lead.name !== lead.companyName
+      toast.success(isPoc ? `POC "${lead.name}" moved to trash` : 'Lead moved to trash')
       loadLeads()
     } catch { }
   }
@@ -383,9 +384,9 @@ export const LeadsPage = () => {
         isOpen={!!confirmDelete}
         onClose={() => setConfirmDelete(null)}
         onConfirm={() => handleDelete(confirmDelete)}
-        title="Delete Lead"
-        message={`Are you sure you want to delete "${confirmDelete?.name}"? This action cannot be undone.`}
-        confirmText="Delete Lead"
+        title={confirmDelete?.companyName && confirmDelete?.name && confirmDelete.name !== confirmDelete.companyName ? "Delete Contact / POC" : "Delete Lead"}
+        message={`Are you sure you want to delete "${confirmDelete?.name || confirmDelete?.companyName}"? It will be safely moved to the Deleted Leads archive.`}
+        confirmText="Delete"
       />
       <CallModal
         isOpen={!!callLead}

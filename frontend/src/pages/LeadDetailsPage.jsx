@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   Phone, Mail, Globe, MapPin, Calendar, Edit, ArrowLeft, Building2, User,
   Clock, Tag, DollarSign, Send, Briefcase, ExternalLink, MessageSquare, Lock, UserCheck,
-  Users, Plus, PhoneCall
+  Users, Plus, PhoneCall, Trash2
 } from 'lucide-react'
 
 const LinkedinIcon = ({ className = "w-4 h-4" }) => (
@@ -67,6 +67,7 @@ export const LeadDetailsPage = () => {
   const [activitiesLoading, setActivitiesLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('overview')
   const [modal, setModal] = useState(null)
+  const [pocToDelete, setPocToDelete] = useState(null)
   const [editLastContactDate, setEditLastContactDate] = useState('')
   const [editTotalCallsCount, setEditTotalCallsCount] = useState(0)
   const [savingQuickMetric, setSavingQuickMetric] = useState(false)
@@ -488,12 +489,24 @@ export const LeadDetailsPage = () => {
                         </div>
 
                         {!isCurrent && (
-                          <Link
-                            to={`/leads/${poc._id}`}
-                            className="btn-secondary text-[11px] py-1 px-2.5 flex-shrink-0"
-                          >
-                            View
-                          </Link>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <Link
+                              to={`/leads/${poc._id}`}
+                              className="btn-secondary text-[11px] py-1 px-2.5"
+                            >
+                              View
+                            </Link>
+                            {(canDelete || canDeleteLead?.(poc)) && (
+                              <button
+                                type="button"
+                                onClick={() => setPocToDelete(poc)}
+                                className="btn-ghost text-xs py-1 px-1.5 text-kb-crimson hover:bg-kb-lost-bg"
+                                title="Delete this POC"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -1107,6 +1120,26 @@ export const LeadDetailsPage = () => {
           </div>
         </form>
       </Modal>
+
+      {/* Delete POC Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={Boolean(pocToDelete)}
+        onClose={() => setPocToDelete(null)}
+        onConfirm={async () => {
+          if (!pocToDelete) return
+          try {
+            await leadsService.delete(pocToDelete._id)
+            toast.success(`POC "${pocToDelete.name}" moved to trash`)
+            setPocToDelete(null)
+            fetchLead()
+          } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to delete POC')
+          }
+        }}
+        title="Delete POC"
+        message={`Are you sure you want to delete POC "${pocToDelete?.name}"? This contact will be moved to the Deleted Leads archive.`}
+        confirmText="Delete POC"
+      />
     </div>
   )
 }

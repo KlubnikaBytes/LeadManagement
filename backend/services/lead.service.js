@@ -755,9 +755,9 @@ const searchCompanies = async (query) => {
     isDeleted: false,
   })
     .select(
-      'companyName companyEmail website businessCategory businessSubCategory address city state country pincode businessDescription name pocJobTitle phone email status priority'
+      'companyName companyEmail companyPhone website businessCategory businessSubCategory businessType address city state country pincode businessDescription name pocJobTitle phone alternatePhone email status priority createdAt updatedAt'
     )
-    .sort({ updatedAt: -1 })
+    .sort({ createdAt: 1 })
     .lean();
 
   const map = new Map();
@@ -766,10 +766,12 @@ const searchCompanies = async (query) => {
     const key = lead.companyName.trim().toLowerCase();
     if (!map.has(key)) {
       map.set(key, {
+        leadId: lead._id,
         companyName: lead.companyName.trim(),
         companyEmail: lead.companyEmail || '',
+        companyPhone: lead.companyPhone || '',
         website: lead.website || '',
-        businessCategory: lead.businessCategory || '',
+        businessCategory: lead.businessCategory || lead.businessType || '',
         businessSubCategory: lead.businessSubCategory || '',
         address: lead.address || '',
         city: lead.city || '',
@@ -781,11 +783,32 @@ const searchCompanies = async (query) => {
       });
     }
     const item = map.get(key);
+
+    // Merge non-empty fields from all matching leads of the same company
+    if (!item.companyEmail && lead.companyEmail) item.companyEmail = lead.companyEmail;
+    if (!item.companyPhone && lead.companyPhone) item.companyPhone = lead.companyPhone;
+    if (!item.website && lead.website) item.website = lead.website;
+    if (!item.businessCategory && (lead.businessCategory || lead.businessType)) {
+      item.businessCategory = lead.businessCategory || lead.businessType;
+    }
+    if (!item.businessSubCategory && lead.businessSubCategory) {
+      item.businessSubCategory = lead.businessSubCategory;
+    }
+    if (!item.address && lead.address) item.address = lead.address;
+    if (!item.city && lead.city) item.city = lead.city;
+    if (!item.state && lead.state) item.state = lead.state;
+    if (!item.country && lead.country) item.country = lead.country;
+    if (!item.pincode && lead.pincode) item.pincode = lead.pincode;
+    if (!item.businessDescription && lead.businessDescription) {
+      item.businessDescription = lead.businessDescription;
+    }
+
     item.pocs.push({
       leadId: lead._id,
       name: lead.name,
       pocJobTitle: lead.pocJobTitle || '',
       phone: lead.phone,
+      alternatePhone: lead.alternatePhone || '',
       email: lead.email || '',
       status: lead.status,
     });

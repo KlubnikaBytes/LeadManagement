@@ -187,6 +187,16 @@ export const LeadTable = ({ leads, onCall, onDelete, canDelete, loading }) => {
                           <Link to={`/leads/${poc._id}`} className="btn-ghost text-xs py-1 px-2 text-kb-strawberry">
                             View →
                           </Link>
+                          {(canDeleteLead ? canDeleteLead(poc) : canDelete) && (
+                            <button
+                              type="button"
+                              onClick={() => onDelete && onDelete(poc)}
+                              className="btn-ghost text-xs py-1 px-1.5 text-kb-crimson hover:bg-kb-lost-bg"
+                              title="Delete POC"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -489,6 +499,16 @@ export const LeadTable = ({ leads, onCall, onDelete, canDelete, loading }) => {
                                             <Edit className="w-3.5 h-3.5" />
                                           </Link>
                                         </>
+                                      )}
+                                      {(canDeleteLead ? canDeleteLead(poc) : canDelete) && (
+                                        <button
+                                          type="button"
+                                          onClick={() => onDelete && onDelete(poc)}
+                                          className="btn-ghost text-xs py-1 px-2 text-kb-crimson hover:bg-kb-lost-bg"
+                                          title="Delete POC"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
                                       )}
                                     </div>
                                   </div>
