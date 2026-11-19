@@ -28,16 +28,31 @@ import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import { useSocketEvent } from '../hooks/useSocketEvent'
 
-const DetailItem = ({ icon: Icon, label, value, isLink, linkHref }) => {
+const DetailItem = ({ icon: Icon, label, value, isLink, linkHref, isEmail }) => {
   const displayValue = value && String(value).trim() !== '' ? String(value).trim() : '—'
   const hasValue = displayValue !== '—'
+  const isEmailField = isEmail || (hasValue && (label?.toLowerCase().includes('email') || (linkHref && linkHref.startsWith('mailto:'))))
 
   return (
     <div className="flex items-start gap-3 p-3 bg-kb-cream-deep rounded-xl border border-kb-sand">
       {Icon && <Icon className="w-4 h-4 text-kb-umber mt-0.5 flex-shrink-0" />}
       <div className="min-w-0 flex-1">
         <p className="text-xs text-kb-muted font-medium uppercase tracking-wider">{label}</p>
-        {hasValue && isLink ? (
+        {hasValue && isEmailField ? (
+          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+            {displayValue.split(',').map(e => e.trim()).filter(Boolean).map((em, idx) => (
+              <a
+                key={idx}
+                href={`mailto:${em}`}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium bg-kb-white border border-kb-sand text-kb-cocoa hover:text-kb-strawberry hover:border-kb-strawberry transition-colors"
+                title={`Send email to ${em}`}
+              >
+                <Mail className="w-3 h-3 text-kb-umber flex-shrink-0" />
+                <span className="truncate">{em}</span>
+              </a>
+            ))}
+          </div>
+        ) : hasValue && isLink ? (
           <a
             href={linkHref || displayValue}
             target="_blank"
@@ -304,22 +319,51 @@ export const LeadDetailsPage = () => {
                 </a>
               )}
 
-              {lead.email && (
-                <a
-                  href={`mailto:${lead.email}`}
-                  className="flex items-center gap-3 p-2.5 bg-kb-cream-deep hover:bg-kb-cream border border-kb-sand rounded-xl transition-colors group"
-                >
-                  <div className="w-8 h-8 bg-kb-umber-bg border border-kb-umber-border rounded-lg flex items-center justify-center">
-                    <Mail className="w-4 h-4 text-kb-umber-fg" />
+              {lead.email && (() => {
+                const pocEmails = lead.email.split(',').map(e => e.trim()).filter(Boolean)
+                if (pocEmails.length === 1) {
+                  return (
+                    <a
+                      href={`mailto:${pocEmails[0]}`}
+                      className="flex items-center gap-3 p-2.5 bg-kb-cream-deep hover:bg-kb-cream border border-kb-sand rounded-xl transition-colors group"
+                    >
+                      <div className="w-8 h-8 bg-kb-umber-bg border border-kb-umber-border rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Mail className="w-4 h-4 text-kb-umber-fg" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs text-kb-muted">POC Email Address</p>
+                        <p className="text-sm text-kb-cocoa group-hover:text-kb-strawberry transition-colors truncate">
+                          {pocEmails[0]}
+                        </p>
+                      </div>
+                    </a>
+                  )
+                }
+                return (
+                  <div className="p-2.5 bg-kb-cream-deep border border-kb-sand rounded-xl">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="w-8 h-8 bg-kb-umber-bg border border-kb-umber-border rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Mail className="w-4 h-4 text-kb-umber-fg" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs text-kb-muted font-medium">POC Emails ({pocEmails.length})</p>
+                      </div>
+                    </div>
+                    <div className="space-y-1 pl-10">
+                      {pocEmails.map((em, idx) => (
+                        <a
+                          key={idx}
+                          href={`mailto:${em}`}
+                          className="text-xs font-mono text-kb-cocoa hover:text-kb-strawberry hover:underline flex items-center gap-1.5 truncate group"
+                          title={em}
+                        >
+                          <span className="truncate">✉️ {em}</span>
+                        </a>
+                      ))}
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs text-kb-muted">Email Address</p>
-                    <p className="text-sm text-kb-cocoa group-hover:text-kb-strawberry transition-colors truncate">
-                      {lead.email}
-                    </p>
-                  </div>
-                </a>
-              )}
+                )
+              })()}
 
               {lead.pocLinkedIn && (
                 <a
@@ -359,22 +403,51 @@ export const LeadDetailsPage = () => {
                 </a>
               )}
 
-              {lead.companyEmail && (
-                <a
-                  href={`mailto:${lead.companyEmail}`}
-                  className="flex items-center gap-3 p-2.5 bg-kb-cream-deep hover:bg-kb-cream border border-kb-sand rounded-xl transition-colors group"
-                >
-                  <div className="w-8 h-8 bg-kb-white border border-kb-sand rounded-lg flex items-center justify-center">
-                    <Mail className="w-4 h-4 text-kb-umber" />
+              {lead.companyEmail && (() => {
+                const compEmails = lead.companyEmail.split(',').map(e => e.trim()).filter(Boolean)
+                if (compEmails.length === 1) {
+                  return (
+                    <a
+                      href={`mailto:${compEmails[0]}`}
+                      className="flex items-center gap-3 p-2.5 bg-kb-cream-deep hover:bg-kb-cream border border-kb-sand rounded-xl transition-colors group"
+                    >
+                      <div className="w-8 h-8 bg-kb-white border border-kb-sand rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Mail className="w-4 h-4 text-kb-umber" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs text-kb-muted">Company / Business Email</p>
+                        <p className="text-sm text-kb-strawberry group-hover:underline transition-colors truncate font-medium">
+                          {compEmails[0]}
+                        </p>
+                      </div>
+                    </a>
+                  )
+                }
+                return (
+                  <div className="p-2.5 bg-kb-cream-deep border border-kb-sand rounded-xl">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="w-8 h-8 bg-kb-white border border-kb-sand rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Mail className="w-4 h-4 text-kb-umber" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs text-kb-muted font-medium">Company Emails ({compEmails.length})</p>
+                      </div>
+                    </div>
+                    <div className="space-y-1 pl-10">
+                      {compEmails.map((em, idx) => (
+                        <a
+                          key={idx}
+                          href={`mailto:${em}`}
+                          className="text-xs font-mono text-kb-strawberry hover:underline flex items-center gap-1.5 truncate font-medium"
+                          title={em}
+                        >
+                          <span className="truncate">✉️ {em}</span>
+                        </a>
+                      ))}
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs text-kb-muted">Company / Business Email</p>
-                    <p className="text-sm text-kb-strawberry group-hover:underline transition-colors truncate font-medium">
-                      {lead.companyEmail}
-                    </p>
-                  </div>
-                </a>
-              )}
+                )
+              })()}
 
               {lead.companyPhone && (
                 <a
@@ -485,6 +558,20 @@ export const LeadDetailsPage = () => {
                           )}
                           {poc.phone && (
                             <p className="text-xs font-mono text-kb-text-muted mt-0.5 truncate">📞 {poc.phone}</p>
+                          )}
+                          {poc.email && (
+                            <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                              {poc.email.split(',').map(e => e.trim()).filter(Boolean).map((em, idx) => (
+                                <a
+                                  key={idx}
+                                  href={`mailto:${em}`}
+                                  className="text-[11px] font-mono text-kb-strawberry hover:underline truncate"
+                                  title={em}
+                                >
+                                  ✉️ {em}
+                                </a>
+                              ))}
+                            </div>
                           )}
                         </div>
 
@@ -722,8 +809,7 @@ export const LeadDetailsPage = () => {
                         icon={Mail}
                         label="Company / Business Email"
                         value={lead.companyEmail}
-                        isLink
-                        linkHref={lead.companyEmail ? `mailto:${lead.companyEmail}` : null}
+                        isEmail
                       />
                       <DetailItem
                         icon={Phone}
@@ -802,7 +888,7 @@ export const LeadDetailsPage = () => {
                       <DetailItem icon={Briefcase} label="Job Title / Designation" value={lead.pocJobTitle} />
                       <DetailItem icon={Phone} label="Primary Phone" value={lead.phone} />
                       <DetailItem icon={Phone} label="Alternate Phone / WhatsApp" value={lead.alternatePhone} />
-                      <DetailItem icon={Mail} label="Email Address" value={lead.email} />
+                      <DetailItem icon={Mail} label="Email Address" value={lead.email} isEmail />
                       <DetailItem
                         icon={LinkedinIcon}
                         label="LinkedIn Profile"

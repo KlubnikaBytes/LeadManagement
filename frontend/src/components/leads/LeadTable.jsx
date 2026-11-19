@@ -459,7 +459,21 @@ export const LeadTable = ({ leads, onCall, onDelete, canDelete, loading }) => {
                                         <a href={`tel:${poc.phone}`} className="text-kb-strawberry hover:underline">
                                           {poc.phone}
                                         </a>
-                                        {poc.email && <span className="font-sans">· {poc.email}</span>}
+                                        {poc.email && (
+                                          <span className="font-sans inline-flex items-center gap-1 flex-wrap">
+                                            ·
+                                            {poc.email.split(',').map(e => e.trim()).filter(Boolean).map((em, idx, arr) => (
+                                              <a
+                                                key={idx}
+                                                href={`mailto:${em}`}
+                                                className="hover:text-kb-strawberry hover:underline"
+                                                title={em}
+                                              >
+                                                {em}{idx < arr.length - 1 ? ',' : ''}
+                                              </a>
+                                            ))}
+                                          </span>
+                                        )}
                                         {poc.typeOfReach && <span className="font-sans">· {poc.typeOfReach}</span>}
                                       </div>
                                     </div>

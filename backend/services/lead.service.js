@@ -297,7 +297,12 @@ const createLead = async (data, user) => {
   // Check for duplicate phone or email if provided
   const dupConditions = [];
   if (data.phone) dupConditions.push({ phone: data.phone, isDeleted: false });
-  if (data.email) dupConditions.push({ email: data.email, isDeleted: false });
+  if (data.email) {
+    const emails = String(data.email).split(',').map(e => e.trim()).filter(Boolean);
+    emails.forEach(em => {
+      dupConditions.push({ email: { $regex: new RegExp(`(^|[,\\s])${escapeRegex(em)}([,\\s]|$)`, 'i') }, isDeleted: false });
+    });
+  }
   const existing = dupConditions.length > 0 ? await Lead.findOne({ $or: dupConditions }) : null;
 
   const leadPayload = { ...data, createdBy: userId };
@@ -733,11 +738,23 @@ const getDeletedLeads = async (query, user) => {
   };
 };
 
+const escapeRegex = (str) => (str || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 const checkDuplicate = async (phone, email, website, companyEmail) => {
   const orConditions = [];
   if (phone) orConditions.push({ phone, isDeleted: false });
-  if (email) orConditions.push({ email, isDeleted: false });
-  if (companyEmail) orConditions.push({ companyEmail, isDeleted: false });
+  if (email) {
+    const emails = String(email).split(',').map(e => e.trim()).filter(Boolean);
+    emails.forEach(em => {
+      orConditions.push({ email: { $regex: new RegExp(`(^|[,\\s])${escapeRegex(em)}([,\\s]|$)`, 'i') }, isDeleted: false });
+    });
+  }
+  if (companyEmail) {
+    const compEmails = String(companyEmail).split(',').map(e => e.trim()).filter(Boolean);
+    compEmails.forEach(em => {
+      orConditions.push({ companyEmail: { $regex: new RegExp(`(^|[,\\s])${escapeRegex(em)}([,\\s]|$)`, 'i') }, isDeleted: false });
+    });
+  }
   if (website) orConditions.push({ website, isDeleted: false });
 
   if (!orConditions.length) return null;

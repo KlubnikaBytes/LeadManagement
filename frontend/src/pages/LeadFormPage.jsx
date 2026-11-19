@@ -6,6 +6,7 @@ import { leadsService } from '../services/leads.service'
 import { usersService } from '../services/users.service'
 import { useAuth } from '../context/AuthContext'
 import { toLocalDatetimeInput, toUtcIsoString } from '../utils/helpers'
+import MultiEmailInput from '../components/ui/MultiEmailInput'
 import {
   BUSINESS_CATEGORIES,
   BUSINESS_CATEGORIES_MAP,
@@ -496,8 +497,16 @@ export const LeadFormPage = () => {
     const e = {}
     if (!form.companyName.trim() && !form.name.trim()) e.companyName = 'Company name or POC name is required'
     if (form.phone && !/^\+?[0-9]{7,15}$/.test(form.phone.replace(/[\s-]/g, ''))) e.phone = 'Invalid phone number'
-    if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) e.email = 'Invalid email address'
-    if (form.companyEmail && !/^\S+@\S+\.\S+$/.test(form.companyEmail)) e.companyEmail = 'Invalid company email address'
+    if (form.email) {
+      const emailList = form.email.split(',').map(s => s.trim()).filter(Boolean)
+      const hasInvalid = emailList.some(item => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(item))
+      if (hasInvalid) e.email = 'One or more POC email addresses are invalid'
+    }
+    if (form.companyEmail) {
+      const compEmailList = form.companyEmail.split(',').map(s => s.trim()).filter(Boolean)
+      const hasInvalid = compEmailList.some(item => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(item))
+      if (hasInvalid) e.companyEmail = 'One or more company email addresses are invalid'
+    }
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -716,12 +725,12 @@ export const LeadFormPage = () => {
             </FormGroup>
 
             <FormGroup label="Company / Business Email" error={errors.companyEmail}>
-              <input
-                type="email"
-                className={`input ${errors.companyEmail ? 'border-kb-crimson' : ''}`}
+              <MultiEmailInput
+                id="companyEmail"
                 placeholder="e.g. contact@business.com"
                 value={form.companyEmail}
-                onChange={e => handleChange('companyEmail', e.target.value)}
+                onChange={val => handleChange('companyEmail', val)}
+                error={errors.companyEmail}
               />
             </FormGroup>
 
@@ -897,13 +906,13 @@ export const LeadFormPage = () => {
             </FormGroup>
 
             <FormGroup label="Email Address" error={errors.email}>
-              <input
-                type="email"
-                className={`input ${errors.email ? 'border-kb-crimson' : ''}`}
+              <MultiEmailInput
+                id="email"
                 placeholder="poc.email@example.com"
                 value={form.email}
-                onChange={e => handleChange('email', e.target.value)}
+                onChange={val => handleChange('email', val)}
                 onBlur={checkDuplicate}
+                error={errors.email}
               />
             </FormGroup>
 
